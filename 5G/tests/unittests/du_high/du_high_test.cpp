@@ -25,6 +25,7 @@
 #include "tests/unittests/f1ap/du/f1ap_du_test_helpers.h"
 #include "tests/unittests/gateways/test_helpers.h"
 #include "srsran/support/test_utils.h"
+#include "srsran/koffset.h"
 
 using namespace srsran;
 using namespace srs_du;
@@ -83,7 +84,8 @@ TEST_F(du_high_tester, when_ue_context_release_received_then_ue_gets_deleted)
   const ue_context_release_cmd_s& cmd = msg.pdu.init_msg().value.ue_context_release_cmd();
   this->du_obj.get_f1ap_message_handler().handle_message(msg);
 
-  const unsigned MAX_COUNT = 1000;
+  /* DCD adjust for Koffset values (not needed until at least 600+) */
+  const unsigned MAX_COUNT = 1000 + NTN_KOFFSET;
   for (unsigned i = 0; i != MAX_COUNT; ++i) {
     this->run_slot();
 

@@ -25,6 +25,7 @@
 #include "srsran/ran/duplex_mode.h"
 #include "srsran/ran/pdcch/pdcch_candidates.h"
 #include "srsran/ran/prach/prach_configuration.h"
+#include "srsran/koffset.h"
 
 using namespace srsran;
 using namespace srsran::config_helpers;
@@ -559,7 +560,7 @@ nzp_csi_rs_resource srsran::config_helpers::make_default_nzp_csi_rs_resource(con
 
   res.csi_res_period = get_max_csi_rs_period(params);
   // Note: Avoid slots with SSB and SIB1.
-  res.csi_res_offset = 12;
+  res.csi_res_offset = FIX_CSI_RS_KOFFSET(12); /* DCD */
 
   res.qcl_info_periodic_csi_rs = static_cast<tci_state_id_t>(0);
 
@@ -586,7 +587,7 @@ csi_im_resource srsran::config_helpers::make_default_csi_im_resource(const cell_
   res.freq_band_start_rb.emplace(0);
   res.freq_band_nof_rb.emplace(get_csi_freq_occupation_nof_rbs(params));
   res.csi_res_period.emplace(get_max_csi_rs_period(params));
-  res.csi_res_offset.emplace(2);
+  res.csi_res_offset.emplace(FIX_CSI_RS_KOFFSET(2)); /* DCD */
 
   return res;
 }
@@ -649,7 +650,7 @@ csi_meas_config srsran::config_helpers::make_default_csi_meas_config(const cell_
   meas_cfg.nzp_csi_rs_res_list.back().res_mapping.fd_alloc.resize(12);
   meas_cfg.nzp_csi_rs_res_list.back().res_mapping.fd_alloc.set(0, true);
   meas_cfg.nzp_csi_rs_res_list.back().res_mapping.freq_density = csi_rs_freq_density_type::one;
-  meas_cfg.nzp_csi_rs_res_list.back().csi_res_offset           = 2;
+  meas_cfg.nzp_csi_rs_res_list.back().csi_res_offset           = FIX_CSI_RS_KOFFSET(2); /* DCD */
   // Resource 1.
   meas_cfg.nzp_csi_rs_res_list.push_back(make_default_nzp_csi_rs_resource(params));
   meas_cfg.nzp_csi_rs_res_list.back().res_id = static_cast<nzp_csi_rs_res_id_t>(1);
@@ -660,12 +661,12 @@ csi_meas_config srsran::config_helpers::make_default_csi_meas_config(const cell_
   // Resource 3.
   meas_cfg.nzp_csi_rs_res_list.push_back(make_default_nzp_csi_rs_resource(params));
   meas_cfg.nzp_csi_rs_res_list.back().res_id         = static_cast<nzp_csi_rs_res_id_t>(3);
-  meas_cfg.nzp_csi_rs_res_list.back().csi_res_offset = 13;
+  meas_cfg.nzp_csi_rs_res_list.back().csi_res_offset = FIX_CSI_RS_KOFFSET(13); /* DCD */
   // Resource 4.
   meas_cfg.nzp_csi_rs_res_list.push_back(make_default_nzp_csi_rs_resource(params));
   meas_cfg.nzp_csi_rs_res_list.back().res_id                              = static_cast<nzp_csi_rs_res_id_t>(4);
   meas_cfg.nzp_csi_rs_res_list.back().res_mapping.first_ofdm_symbol_in_td = 8;
-  meas_cfg.nzp_csi_rs_res_list.back().csi_res_offset                      = 13;
+  meas_cfg.nzp_csi_rs_res_list.back().csi_res_offset                      = FIX_CSI_RS_KOFFSET(13); /* DCD */
 
   // NZP-CSI-RS-ResourceSet.
   // Resource Set 0.

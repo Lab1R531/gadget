@@ -31,12 +31,14 @@
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "srsran/ran/duplex_mode.h"
 #include "srsran/support/test_utils.h"
+#include "srsran/koffset.h"
 #include <gtest/gtest.h>
 #include <unordered_map>
 
 using namespace srsran;
 
-using dl_bsr_lc_report_list = static_vector<dl_buffer_state_indication_message, MAX_NOF_RB_LCIDS>;
+/* DCD account for Koffset in test_multiplexing_of_csi_rs_and_pdsch test */
+using dl_bsr_lc_report_list = static_vector<dl_buffer_state_indication_message, MAX_NOF_RB_LCIDS + cell_resource_allocator::RING_ALLOCATOR_SIZE>;
 
 struct sched_test_ue {
   rnti_t                            crnti;
@@ -62,8 +64,9 @@ struct multiple_ue_test_params {
 
 // Helper class to initialize and store relevant objects for the test and provide helper methods.
 struct test_bench {
+  /* DCD account for Koffset */
   // Maximum number of slots to run per UE in order to validate the results of scheduler. Implementation defined.
-  static constexpr unsigned max_test_run_slots_per_ue = 80;
+  static constexpr unsigned max_test_run_slots_per_ue = cell_resource_allocator::RING_ALLOCATOR_SIZE;
 
   scheduler_expert_config                          expert_cfg;
   cell_configuration                               cell_cfg;
@@ -107,6 +110,7 @@ protected:
   {
     current_slot = slot_point{to_numerology_value(msg.scs_common), 0};
 
+    /* DCD account for Koffset */
     const auto& dl_lst = msg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
     for (const auto& pdsch : dl_lst) {
       if (pdsch.k0 > max_k_value) {
@@ -115,8 +119,8 @@ protected:
     }
     const auto& ul_lst = msg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
     for (const auto& pusch : ul_lst) {
-      if (pusch.k2 > max_k_value) {
-        max_k_value = pusch.k2;
+      if (pusch.k2 + NTN_KOFFSET > max_k_value) {
+        max_k_value = pusch.k2 + NTN_KOFFSET;
       }
     }
 
@@ -311,8 +315,9 @@ protected:
     const auto& cell_ul_lst = bench->cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
     const auto& ul_lst      = ue_ul_lst.empty() ? cell_ul_lst : ue_ul_lst;
 
+    /* DCD account for Koffset */
     return it == bench->sched_res->dl.ul_pdcchs.end() ? optional<slot_point>{nullopt}
-                                                      : current_slot + ul_lst[it->dci.c_rnti_f0_0.time_resource].k2;
+                                                      : current_slot + ul_lst[it->dci.c_rnti_f0_0.time_resource].k2 + NTN_KOFFSET;
   }
 
   optional<slot_point> get_pdsch_scheduled_slot(const sched_test_ue& u) const
@@ -325,7 +330,7 @@ protected:
     const auto& dl_lst      = ue_dl_lst.empty() ? cell_dl_lst : ue_dl_lst;
 
     return it == bench->sched_res->dl.dl_pdcchs.end() ? optional<slot_point>{nullopt}
-                                                      : current_slot + dl_lst[it->dci.c_rnti_f1_0.time_resource].k0;
+                                                      : current_slot + dl_lst[it->dci.c_rnti_f1_0.time_resource].k0; /* DCD CHECK */
   }
 
   optional<slot_point> get_pdsch_ack_nack_scheduled_slot(const sched_test_ue& u) const
@@ -336,13 +341,13 @@ protected:
     if (it == bench->sched_res->dl.dl_pdcchs.end()) {
       return {};
     }
-
+    /* DCD account for Koffset - pdsch_harq_fb_timing_indicator is k1 - 1 */
     // TS38.213, 9.2.3 - For DCI f1_0, the PDSCH-to-HARQ-timing-indicator field values map to {1, 2, 3, 4, 5, 6, 7, 8}.
     // PDSCH-to-HARQ-timing-indicator provide the index in {1, 2, 3, 4, 5, 6, 7, 8} starting from 0 .. 7.
     if (it->dci.type == srsran::dci_dl_rnti_config_type::tc_rnti_f1_0) {
-      return current_slot + it->dci.tc_rnti_f1_0.pdsch_harq_fb_timing_indicator + 1;
+      return current_slot + it->dci.tc_rnti_f1_0.pdsch_harq_fb_timing_indicator + 1 + NTN_KOFFSET;
     }
-    return current_slot + it->dci.c_rnti_f1_0.pdsch_harq_fb_timing_indicator + 1;
+    return current_slot + it->dci.c_rnti_f1_0.pdsch_harq_fb_timing_indicator + 1 + NTN_KOFFSET;
   }
 
   uci_indication build_harq_ack_pucch_f0_f1_uci_ind(const du_ue_index_t ue_idx, const slot_point& sl_tx)

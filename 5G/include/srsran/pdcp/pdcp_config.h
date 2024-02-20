@@ -152,7 +152,10 @@ inline bool pdcp_t_reordering_from_int(pdcp_t_reordering& t_reord, int num)
 }
 
 /// \brief Convert PDCP NR t-Reordering from enum to integer.
-constexpr uint8_t pdcp_t_reordering_to_int(pdcp_t_reordering t_reordering)
+// SW-MOD_A-40: shouldn'it be uint16_t????
+//constexpr uint8_t pdcp_t_reordering_to_int(pdcp_t_reordering t_reordering) // srs original
+constexpr uint16_t pdcp_t_reordering_to_int(pdcp_t_reordering t_reordering)
+// End of SW-MOD_A-40
 {
   return static_cast<int16_t>(t_reordering);
 }

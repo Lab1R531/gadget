@@ -287,7 +287,8 @@ void assert_rar_grant_msg3_pusch_consistency(const cell_configuration&      cell
     // For all RAR grants within the same RAR, check that they are consistent with the respective Msg3 PUSCHs.
     for (const rar_ul_grant& rar_grant : rar.grants) {
       TESTASSERT(rar_grant.time_resource_assignment < pusch_td_list.size());
-      uint8_t k2 = get_msg3_delay(pusch_td_list[rar_grant.time_resource_assignment],
+      /* DCD extend data type to uint16_t to account for Koffset */
+      uint16_t k2 = get_msg3_delay(pusch_td_list[rar_grant.time_resource_assignment],
                                   cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs);
 
       span<const ul_sched_info> ul_grants = res_grid[k2].result.ul.puschs;

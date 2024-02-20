@@ -127,8 +127,9 @@ public:
 private:
   /// Size of the ring buffer of pucch_resource_manager. This size sets a limit on how far in advance a PUCCH can be
   /// allocated.
+  /* DCD account for Koffset */
   static const size_t RES_MANAGER_RING_BUFFER_SIZE =
-      get_allocator_ring_size_gt_min(SCHEDULER_MAX_K0 + SCHEDULER_MAX_K1);
+      get_allocator_ring_size_gt_min(SCHEDULER_MAX_K0 + SCHEDULER_MAX_K1 + SCHEDULER_MAX_KOFFSET);
 
   // [Implementation-defined] Number of PUCCH resources (of single format) that can be handled by the resource manager.
   // NOTE: this number allows us to have a 1-to-1 match between PUCCH resource indicator and index of the PUCCH resource

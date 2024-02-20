@@ -30,6 +30,7 @@
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "srsran/scheduler/scheduler_factory.h"
 #include "srsran/support/test_utils.h"
+#include "srsran/koffset.h"
 #include <gtest/gtest.h>
 
 using namespace srsran;
@@ -158,7 +159,8 @@ protected:
 
 TEST_F(uci_sched_tester, no_retx_after_harq_ack)
 {
-  static constexpr unsigned MAX_COUNT = 16;
+  /* DCD account for Koffset */
+  unsigned MAX_COUNT = 16 + NTN_KOFFSET;
   notify_dl_buffer_status(LCID_SRB0, 100);
 
   bool pucch_found = false;
@@ -182,8 +184,9 @@ TEST_F(uci_sched_tester, no_retx_after_harq_ack)
 
 TEST_F(uci_sched_tester, pusch_scheduled_after_sr_indication)
 {
+  /* DCD account for Koffset - TODO validate it theoretically too */
   // Maximum delay between the SR indication being forwarded to the scheduler and the scheduler generating an UL grant.
-  static constexpr unsigned MAX_UL_GRANT_DELAY = 8;
+  unsigned MAX_UL_GRANT_DELAY = 8 + NTN_KOFFSET;
   notify_uci_ind_on_pucch(true, {});
 
   bool pusch_found = false;
@@ -201,7 +204,8 @@ TEST_F(uci_sched_tester, pusch_scheduled_after_sr_indication)
 
 TEST_F(uci_sched_tester, uci_ind_on_pusch)
 {
-  static constexpr unsigned MAX_COUNT = 16;
+  /* DCD account for Koffset */
+  unsigned MAX_COUNT = 16 + NTN_KOFFSET;
   // SR request.
   notify_uci_ind_on_pucch(true, {});
 

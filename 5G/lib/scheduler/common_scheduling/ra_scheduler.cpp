@@ -30,6 +30,11 @@
 #include "../ue_scheduling/ue_sch_pdu_builder.h"
 #include "srsran/ran/resource_allocation/resource_allocation_frequency.h"
 #include "srsran/support/compiler.h"
+#include "srsran/koffset.h"
+
+extern unsigned int ntn_extended_rtt_slots;                         // SW-MOD_A-50
+extern unsigned int ntn_ra_response_window_slot_start_increment;    // SW-MOD_A-50
+extern unsigned int ntn_ra_response_window_slot_length_increment;   // SW-MOD_A-50
 
 using namespace srsran;
 
@@ -46,7 +51,8 @@ unsigned srsran::get_msg3_delay(const pusch_time_domain_resource_allocation& pus
   // The MSG3 slot is defined as MSG3_slot = floor( n * (2^*(mu_PUSCH) ) / (2^*(mu_PDCCH) ) ) + k2 + Delta.
   // Given the assumption mu_PUSCH == mu_PDCCH, MSG3_delay simplifies to MSG3_delay =  k2 + Delta
   // [TS 38.214, Section 6.1.2.1 and 6.1.2.1.1].
-  return static_cast<int>(pusch_td_res_alloc.k2 + DELTAS[to_numerology_value(pusch_scs)]);
+  //return static_cast<int>(pusch_td_res_alloc.k2 + DELTAS[to_numerology_value(pusch_scs)]);
+  return static_cast<int>(pusch_td_res_alloc.k2 + DELTAS[to_numerology_value(pusch_scs)] + NTN_KOFFSET); /* DCD */
 }
 
 uint16_t srsran::get_ra_rnti(unsigned slot_index, unsigned symbol_index, unsigned frequency_index, bool is_sul)
@@ -216,17 +222,17 @@ void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& ms
       // TDD case.
       const unsigned period = nof_slots_per_tdd_period(*cell_cfg.tdd_cfg_common);
       for (unsigned sl_idx = 0; sl_idx < period; ++sl_idx) {
-        const slot_point sl_start = rar_req->prach_slot_rx + prach_duration + sl_idx;
+        const slot_point sl_start = rar_req->prach_slot_rx + prach_duration + sl_idx + ntn_ra_response_window_slot_start_increment; // SW-MOD_A-50
         if (cell_cfg.is_dl_enabled(sl_start)) {
-          rar_req->rar_window = {sl_start, sl_start + ra_win_nof_slots};
+          rar_req->rar_window = {sl_start, sl_start + ra_win_nof_slots + ntn_ra_response_window_slot_length_increment + ntn_extended_rtt_slots};
           break;
         }
       }
       srsran_sanity_check(rar_req->rar_window.length() != 0, "Invalid configuration");
     } else {
       // FDD case.
-      rar_req->rar_window = {rar_req->prach_slot_rx + prach_duration,
-                             rar_req->prach_slot_rx + prach_duration + ra_win_nof_slots};
+      rar_req->rar_window = {rar_req->prach_slot_rx + prach_duration + ntn_ra_response_window_slot_start_increment, // SW-MOD_A-50
+                             rar_req->prach_slot_rx + prach_duration + ntn_ra_response_window_slot_length_increment + ntn_extended_rtt_slots + ra_win_nof_slots}; // SW-MOD_A-50
     }
 
     for (const auto& prach_preamble : prach_occ.preambles) {
@@ -622,7 +628,8 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
 
   for (unsigned pusch_td_res_index = 0; pusch_td_res_index != pusch_tds.size(); ++pusch_td_res_index) {
     const unsigned                k2          = get_pusch_cfg().pusch_td_alloc_list[pusch_td_res_index].k2;
-    cell_slot_resource_allocator& pusch_alloc = res_alloc[k2];
+    //cell_slot_resource_allocator& pusch_alloc = res_alloc[k2];
+    cell_slot_resource_allocator& pusch_alloc = res_alloc[k2+NTN_KOFFSET]; /* DCD */
     const unsigned                start_ul_symbols =
         NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - cell_cfg.get_nof_ul_symbol_per_slot(pusch_alloc.slot);
     if (not(cell_cfg.is_ul_enabled(pusch_alloc.slot) and

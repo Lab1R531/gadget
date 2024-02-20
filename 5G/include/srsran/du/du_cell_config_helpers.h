@@ -119,6 +119,38 @@ inline du_cell_config make_default_du_cell_config(const cell_config_builder_para
 ///
 /// Note: These three timers will have implications in picking the PDCP's t-Reordering. See the generation of
 ///       t-Reordering default configuration for details.
+
+
+// SW-MOD_A-40 
+// Reads t_reassembly value for 5QI7 from environment variable
+const uint16_t DEFAULT_T_REASSEMBLY_5QI7=90; //srs default
+static uint16_t read_5qi7_t_reassembly_env_var(){
+  const char* str = std::getenv("T_REASSEMBLY_5QI7");
+  if (str != nullptr){
+    uint16_t k = (uint16_t)strtol(str, NULL, 10);
+    printf("[GAD] read T_REASSEMBLY_5QI7 = %d from env var T_REASSEMBLY_5QI7\n", k);
+    printf("[GAD] warning: no consistency check performed (read value may not be valid)\n");
+    return k;
+  }
+  printf("[GAD] Using default T_REASSEMBLY_5QI7 value %d\n", DEFAULT_T_REASSEMBLY_5QI7);
+  return DEFAULT_T_REASSEMBLY_5QI7;
+}
+
+// Reads t_reassembly value for 5QI9 from environment variable
+const uint16_t DEFAULT_T_REASSEMBLY_5QI9=90; //srs default
+static uint16_t read_5qi9_t_reassembly_env_var(){
+  const char* str = std::getenv("T_REASSEMBLY_5QI9");
+  if (str != nullptr){
+    uint16_t k = (uint16_t)strtol(str, NULL, 10);
+    printf("[GAD] read T_REASSEMBLY_5QI9 = %d from env var T_REASSEMBLY_5QI9\n", k);
+    printf("[GAD] warning: no consistency check performed (read value may not be valid)\n");
+    return k;
+  }
+  printf("[GAD] Using default T_REASSEMBLY_5QI9 value %d\n", DEFAULT_T_REASSEMBLY_5QI9);
+  return DEFAULT_T_REASSEMBLY_5QI9;
+}
+// End of SW-MOD_A-40
+
 inline std::map<five_qi_t, du_qos_config> make_default_du_qos_config_list()
 {
   std::map<five_qi_t, du_qos_config> qos_list = {};
@@ -128,7 +160,10 @@ inline std::map<five_qi_t, du_qos_config> make_default_du_qos_config_list()
     cfg.rlc.mode                  = rlc_mode::um_bidir;
     cfg.rlc.um.tx.sn_field_length = rlc_um_sn_size::size12bits;
     cfg.rlc.um.rx.sn_field_length = rlc_um_sn_size::size12bits;
-    cfg.rlc.um.rx.t_reassembly    = 90;
+    // SW-MOD_A-40
+    // cfg.rlc.am.rx.t_reassembly      = 90; // srs default
+    cfg.rlc.am.rx.t_reassembly      = read_5qi7_t_reassembly_env_var();
+    // End of SW-MOD_A-40
     qos_list[uint_to_five_qi(7)]  = cfg;
   }
   {
@@ -136,12 +171,17 @@ inline std::map<five_qi_t, du_qos_config> make_default_du_qos_config_list()
     du_qos_config cfg{};
     cfg.rlc.mode                    = rlc_mode::am;
     cfg.rlc.am.tx.sn_field_length   = rlc_am_sn_size::size12bits;
-    cfg.rlc.am.tx.t_poll_retx       = 110;
+    cfg.rlc.am.tx.t_poll_retx       = 110; /* DCD TODO account for Koffset by increasing it? */
     cfg.rlc.am.tx.poll_pdu          = 16;
     cfg.rlc.am.tx.poll_byte         = 6500;
     cfg.rlc.am.tx.max_retx_thresh   = 8;
     cfg.rlc.am.rx.sn_field_length   = rlc_am_sn_size::size12bits;
-    cfg.rlc.am.rx.t_reassembly      = 90;
+    
+    // SW-MOD_A-40
+    // cfg.rlc.am.rx.t_reassembly      = 90; // srs default
+    cfg.rlc.am.rx.t_reassembly      = read_5qi9_t_reassembly_env_var();
+    // End of SW-MOD_A-40
+    
     cfg.rlc.am.rx.t_status_prohibit = 100;
     qos_list[uint_to_five_qi(9)]    = cfg;
   }

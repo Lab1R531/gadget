@@ -23,6 +23,7 @@
 #include "harq_process.h"
 #include "srsran/scheduler/scheduler_slot_handler.h"
 #include "srsran/support/error_handling.h"
+#include "srsran/koffset.h"
 
 using namespace srsran;
 
@@ -147,7 +148,8 @@ template class detail::harq_process<false>;
 
 void dl_harq_process::new_tx(slot_point pdsch_slot, unsigned k1, unsigned max_harq_nof_retxs, uint8_t dai)
 {
-  base_type::tx_common(pdsch_slot, pdsch_slot + k1);
+  //base_type::tx_common(pdsch_slot, pdsch_slot + k1);
+  base_type::tx_common(pdsch_slot, pdsch_slot + k1 + NTN_KOFFSET); /* DCD */
   base_type::new_tx_tb_common(0, max_harq_nof_retxs, dai);
   prev_tx_params = {};
   prev_tx_params.tb[0].emplace();
@@ -156,7 +158,8 @@ void dl_harq_process::new_tx(slot_point pdsch_slot, unsigned k1, unsigned max_ha
 
 void dl_harq_process::new_retx(slot_point pdsch_slot, unsigned k1, uint8_t dai)
 {
-  base_type::tx_common(pdsch_slot, pdsch_slot + k1);
+  //base_type::tx_common(pdsch_slot, pdsch_slot + k1);
+  base_type::tx_common(pdsch_slot, pdsch_slot + k1 + NTN_KOFFSET); /* DCD */
   base_type::new_retx_tb_common(0, dai);
 }
 
@@ -170,7 +173,8 @@ void dl_harq_process::tx_2_tb(slot_point                pdsch_slot,
   srsran_assert(
       std::any_of(tb_tx_req.begin(), tb_tx_req.end(), [](const auto& tb) { return tb != tb_tx_request::disabled; }),
       "At least one TB must be enabled in a HARQ allocation");
-  base_type::tx_common(pdsch_slot, pdsch_slot + k1);
+  //base_type::tx_common(pdsch_slot, pdsch_slot + k1);
+  base_type::tx_common(pdsch_slot, pdsch_slot + k1 + NTN_KOFFSET); /* DCD */
   for (unsigned i = 0; i != tb_tx_req.size(); ++i) {
     if (tb_tx_req[i] == tb_tx_request::newtx) {
       base_type::new_tx_tb_common(i, max_harq_nof_retxs, dai);

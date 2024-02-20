@@ -27,6 +27,7 @@
 #include "srsran/du/du_cell_config_helpers.h"
 #include "srsran/support/error_handling.h"
 #include "srsran/support/test_utils.h"
+#include "srsran/koffset.h"
 #include <gtest/gtest.h>
 
 using namespace srsran;
@@ -66,7 +67,8 @@ public:
     last_grants.push_back(grant);
     const auto& cell_cfg_cmn = grant.user->get_pcell().cfg().cell_cfg_common;
     unsigned k2 = cell_cfg_cmn.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list[grant.time_res_index].k2;
-    res_grid[k2].ul_res_grid.fill(
+    /* DCD account for Koffset */
+    res_grid[k2+NTN_KOFFSET].ul_res_grid.fill(
         grant_info{cell_cfg_cmn.ul_cfg_common.init_ul_bwp.generic_params.scs, {0, 14}, grant.crbs});
     return true;
   }
@@ -269,6 +271,7 @@ TEST_P(scheduler_policy_test, scheduler_allocates_more_than_one_ue_in_case_their
 
   ASSERT_EQ(pusch_alloc.last_grants.size(), 2);
   ASSERT_NE(pusch_alloc.last_grants[0].user->ue_index, pusch_alloc.last_grants[1].user->ue_index);
+
   ASSERT_FALSE(pusch_alloc.last_grants[0].crbs.overlaps(pusch_alloc.last_grants[1].crbs));
 }
 

@@ -25,6 +25,9 @@
 #include "srsran/security/integrity.h"
 #include "srsran/support/bit_encoding.h"
 
+extern unsigned int ntn_extended_rtt_ms;              // SW-MOD_A-50
+extern unsigned int ntn_t_reordering_timer_increment; // SW-MOD_A-50
+
 using namespace srsran;
 
 pdcp_entity_rx::pdcp_entity_rx(uint32_t                        ue_index,
@@ -47,8 +50,8 @@ pdcp_entity_rx::pdcp_entity_rx(uint32_t                        ue_index,
   // t-Reordering timer
   if (cfg.t_reordering != pdcp_t_reordering::ms0 && cfg.t_reordering != pdcp_t_reordering::infinity) {
     reordering_timer = timers.create_timer();
-    if (static_cast<uint32_t>(cfg.t_reordering) > 0) {
-      reordering_timer.set(std::chrono::milliseconds{static_cast<unsigned>(cfg.t_reordering)},
+    if (static_cast<uint32_t>(cfg.t_reordering) + ntn_extended_rtt_ms + ntn_t_reordering_timer_increment > 0) { // SW-MOD_A-50
+      reordering_timer.set(std::chrono::milliseconds{static_cast<unsigned>(cfg.t_reordering) + ntn_extended_rtt_ms + ntn_t_reordering_timer_increment}, // SW-MOD_A-50
                            reordering_callback{this});
     }
   }

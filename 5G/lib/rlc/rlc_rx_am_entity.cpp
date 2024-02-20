@@ -23,6 +23,9 @@
 #include "rlc_rx_am_entity.h"
 #include "srsran/adt/scope_exit.h"
 
+extern unsigned int ntn_extended_rtt_ms;              // SW-MOD_A-50
+extern unsigned int ntn_t_reassembly_timer_increment; // SW-MOD_A-50
+
 using namespace srsran;
 
 rlc_rx_am_entity::rlc_rx_am_entity(du_ue_index_t                     du_index,
@@ -56,7 +59,7 @@ rlc_rx_am_entity::rlc_rx_am_entity(du_ue_index_t                     du_index,
 
   // configure reassembly_timer
   if (cfg.t_reassembly > 0) {
-    reassembly_timer.set(std::chrono::milliseconds{cfg.t_reassembly},
+    reassembly_timer.set(std::chrono::milliseconds{cfg.t_reassembly + ntn_extended_rtt_ms + ntn_t_reassembly_timer_increment}, // SW-MOD_A-50
                          [this](timer_id_t tid) { on_expired_reassembly_timer(); });
   }
 

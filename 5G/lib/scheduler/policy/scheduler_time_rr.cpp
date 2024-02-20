@@ -22,6 +22,7 @@
 
 #include "scheduler_time_rr.h"
 #include "../support/config_helpers.h"
+#include "srsran/koffset.h"
 
 using namespace srsran;
 
@@ -286,7 +287,8 @@ static bool alloc_ul_ue(const ue&                    u,
       // Search minimum k2 that corresponds to a UL slot.
       unsigned time_res = 0;
       for (; time_res != pusch_list.size(); ++time_res) {
-        const slot_point pusch_slot = pdcch_slot + pusch_list[time_res].k2;
+        /* DCD account for Koffset */
+        const slot_point pusch_slot = pdcch_slot + pusch_list[time_res].k2 + NTN_KOFFSET;
         const unsigned   start_ul_symbols =
             NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - cell_cfg_common.get_nof_ul_symbol_per_slot(pusch_slot);
         // If it is a retx, we need to ensure we use a time_domain_resource with the same number of symbols as used for
@@ -305,8 +307,9 @@ static bool alloc_ul_ue(const ue&                    u,
       }
 
       const unsigned                 k2   = pusch_list[time_res].k2;
-      const cell_slot_resource_grid& grid = res_grid.get_pusch_grid(ue_cc.cell_index, k2);
-      if (res_grid.has_ue_ul_grant(ue_cc.cell_index, ue_cc.rnti(), k2)) {
+      /* DCD account for Koffset - TODO doing it for grid breaks one scheduler policy test */
+      const cell_slot_resource_grid& grid = res_grid.get_pusch_grid(ue_cc.cell_index, k2 + NTN_KOFFSET);
+      if (res_grid.has_ue_ul_grant(ue_cc.cell_index, ue_cc.rnti(), k2 + NTN_KOFFSET)) {
         // only one PUSCH per UE per slot.
         continue;
       }
@@ -380,7 +383,8 @@ void scheduler_time_rr::ul_sched(ue_pusch_allocator&          pusch_alloc,
     const du_cell_index_t cell_idx    = to_du_cell_index(0);
     auto&                 init_ul_bwp = res_grid.get_cell_cfg_common(cell_idx).ul_cfg_common.init_ul_bwp;
     // If all RBs are occupied, stop iteration.
-    return res_grid.get_pusch_grid(cell_idx, init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list[0].k2)
+    /* DCD account for Koffset */
+    return res_grid.get_pusch_grid(cell_idx, init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list[0].k2+NTN_KOFFSET)
         .used_crbs(init_ul_bwp.generic_params, init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list[0].symbols)
         .all();
   };

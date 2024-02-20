@@ -26,6 +26,7 @@
 #include "srsran/rlc/rlc_factory.h"
 #include "srsran/rlc/rlc_rx.h"
 #include "srsran/scheduler/config/logical_channel_config_factory.h"
+#include "srsran/koffset.h"
 
 using namespace srsran;
 using namespace srsran::srs_du;
@@ -188,6 +189,31 @@ async_task<mac_ue_create_response_message> ue_creation_procedure::make_mac_ue_cr
   return mac_mng.ue_cfg.handle_ue_create_request(mac_ue_create_msg);
 }
 
+// SW-MOD_A-40
+// Reads t_reassembly value for default srb1 configuration from environment variable
+using namespace asn1::rrc_nr;
+
+static t_reassembly_opts::options read_t_reassembly_srb1_conf_env_var(){
+  t_reassembly_opts result;
+  result.value=t_reassembly_opts::options::ms35; // srs default
+  const char* str = std::getenv("T_REASSEMBLY_SRB1_CONF");
+  bool assigned = false;
+  if (str != nullptr){
+    uint16_t int_result = (uint16_t)strtol(str, NULL, 10);
+    // Assign read value to result.value (srs default ms35 if read value not valid)
+    assigned = result.set_value_from_number(int_result); // side effect on result
+  }
+  if (assigned){
+    printf("[GAD] read T_REASSEMBLY_SRB1_CONF = %d from env var T_REASSEMBLY_SRB1_CONF\n", result.to_number());
+    printf("[GAD] warning: value is valid but may be inconsistent with others\n");
+  }
+  else{
+    printf("[GAD] Using default T_REASSEMBLY_SRB1_CONF value %d\n", result.to_number());
+  }
+  return result.value;
+}
+// End of SW-MOD_A-40
+
 void ue_creation_procedure::create_f1ap_ue()
 {
   using namespace asn1::rrc_nr;
@@ -216,14 +242,18 @@ void ue_creation_procedure::create_f1ap_ue()
   rlc_cfg_c::am_s_& am                                     = cell_group.rlc_bearer_to_add_mod_list[0].rlc_cfg.set_am();
   am.ul_am_rlc.sn_field_len_present                        = true;
   am.ul_am_rlc.sn_field_len.value                          = sn_field_len_am_opts::size12;
-  am.ul_am_rlc.t_poll_retx.value                           = t_poll_retx_opts::ms45;
+  am.ul_am_rlc.t_poll_retx.value                           = ADJUST_T_POLL_RETX_ENUM_FOR_KOFFSET(t_poll_retx_opts::ms45);
   am.ul_am_rlc.poll_pdu.value                              = poll_pdu_opts::infinity;
   am.ul_am_rlc.poll_byte.value                             = poll_byte_opts::infinity;
   am.ul_am_rlc.max_retx_thres.value                        = ul_am_rlc_s::max_retx_thres_opts::t8;
   am.dl_am_rlc.sn_field_len_present                        = true;
   am.dl_am_rlc.sn_field_len.value                          = sn_field_len_am_opts::size12;
-  am.dl_am_rlc.t_reassembly.value                          = t_reassembly_opts::ms35;
+  // SW-MOD_A-40: t_reassembly changed for NTN test
+  // am.dl_am_rlc.t_reassembly.value                          = t_reassembly_opts::ms35; // srs default
+  am.dl_am_rlc.t_reassembly.value                          = read_t_reassembly_srb1_conf_env_var();
+  // End of SW-MOD_A-40
   am.dl_am_rlc.t_status_prohibit.value                     = t_status_prohibit_opts::ms0;
+
   // TODO: Fill Remaining.
 
   {

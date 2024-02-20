@@ -23,6 +23,7 @@
 #include "pucch_allocator_impl.h"
 #include "../support/pucch/pucch_default_resource.h"
 #include "srsran/ran/pucch/pucch_info.h"
+#include "srsran/koffset.h"
 
 //////////////     Helper functions       //////////////
 
@@ -235,7 +236,8 @@ pucch_harq_ack_grant pucch_allocator_impl::alloc_common_pucch_harq_ack_ue(cell_r
   pucch_harq_ack_grant pucch_harq_ack_output{};
 
   // Get the slot allocation grid considering the PDSCH delay (k0) and the PUCCH delay wrt PDSCH (k1).
-  cell_slot_resource_allocator& pucch_slot_alloc = slot_alloc[pdsch_time_domain_resource + k1];
+  //cell_slot_resource_allocator& pucch_slot_alloc = slot_alloc[pdsch_time_domain_resource + k1];
+  cell_slot_resource_allocator& pucch_slot_alloc = slot_alloc[pdsch_time_domain_resource + k1 + NTN_KOFFSET]; /* DCD */
 
   if (pucch_slot_alloc.result.ul.pucchs.full()) {
     return pucch_harq_ack_output;
@@ -290,7 +292,8 @@ pucch_harq_ack_grant pucch_allocator_impl::alloc_ded_pucch_harq_ack_ue(cell_reso
   // be performed by the caller.
 
   // Get the slot allocation grid considering the PDSCH delay (k0) and the PUCCH delay wrt PDSCH (k1).
-  cell_slot_resource_allocator& pucch_slot_alloc = res_alloc[pdsch_time_domain_resource + k1];
+  //cell_slot_resource_allocator& pucch_slot_alloc = res_alloc[pdsch_time_domain_resource + k1];
+  cell_slot_resource_allocator& pucch_slot_alloc = res_alloc[pdsch_time_domain_resource + k1 + NTN_KOFFSET]; /* DCD */
 
   auto& pucchs = pucch_slot_alloc.result.ul.pucchs;
 

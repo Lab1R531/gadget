@@ -22,6 +22,7 @@
 
 #include "csi_rs_scheduler.h"
 #include "srsran/ran/csi_rs/csi_rs_config_helpers.h"
+#include "srsran/koffset.h"
 
 using namespace srsran;
 
@@ -75,8 +76,10 @@ void csi_rs_scheduler::run_slot(cell_slot_resource_allocator& res_grid)
 
   for (unsigned i = 0; i != cached_csi_rs.size(); ++i) {
     const nzp_csi_rs_resource& nzp_csi = cell_cfg.csi_meas_cfg->nzp_csi_rs_res_list[i];
-    if ((res_grid.slot - *nzp_csi.csi_res_offset).to_uint() % (unsigned)*nzp_csi.csi_res_period == 0) {
+    /* DCD account for Koffset and avoid negative modulo errors */
+    uint32_t slot_idx = res_grid.slot.to_uint();
+    uint32_t adjust = *nzp_csi.csi_res_offset + NTN_KOFFSET;
+    if (slot_idx >= adjust && (slot_idx - adjust) % (unsigned)*nzp_csi.csi_res_period == 0)
       res_grid.result.dl.csi_rs.push_back(cached_csi_rs[i]);
-    }
   }
 }

@@ -26,6 +26,9 @@
 #include "srsran/support/bit_encoding.h"
 #include "srsran/support/srsran_assert.h"
 
+extern unsigned int ntn_extended_rtt_ms;              // SW-MOD_A-50
+extern unsigned int ntn_discard_timer_increment;      // SW-MOD_A-50
+
 using namespace srsran;
 
 /// \brief Receive an SDU from the upper layers, apply encryption
@@ -81,7 +84,7 @@ void pdcp_entity_tx::handle_sdu(byte_buffer sdu)
   // the PDU to use later in the data recovery procedure.
   if (cfg.discard_timer != pdcp_discard_timer::infinity && cfg.discard_timer != pdcp_discard_timer::not_configured) {
     unique_timer discard_timer = timers.create_timer();
-    discard_timer.set(std::chrono::milliseconds(static_cast<unsigned>(cfg.discard_timer)),
+    discard_timer.set(std::chrono::milliseconds(static_cast<unsigned>(cfg.discard_timer) + ntn_extended_rtt_ms + ntn_discard_timer_increment), // SW-MOD_A-50
                       discard_callback{this, st.tx_next});
     discard_timer.run();
     discard_info info;
@@ -91,7 +94,7 @@ void pdcp_entity_tx::handle_sdu(byte_buffer sdu)
       info = {protected_buf.copy(), std::move(discard_timer)};
     }
     discard_timers_map.insert(std::make_pair(st.tx_next, std::move(info)));
-    logger.log_debug("Set discard timer. count={} timeout={}", st.tx_next, static_cast<uint32_t>(cfg.discard_timer));
+    logger.log_debug("Set discard timer. count={} timeout={}", st.tx_next, static_cast<uint32_t>(cfg.discard_timer) + ntn_extended_rtt_ms + ntn_discard_timer_increment); // SW-MOD_A-50
   }
 
   // Write to lower layers

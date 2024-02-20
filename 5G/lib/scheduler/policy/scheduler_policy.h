@@ -23,6 +23,7 @@
 #pragma once
 
 #include "ue_allocator.h"
+#include "srsran/koffset.h"
 
 namespace srsran {
 

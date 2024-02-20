@@ -22,6 +22,7 @@
 
 #include "lib/scheduler/ue_scheduling/harq_process.h"
 #include "srsran/support/test_utils.h"
+#include "srsran/koffset.h"
 #include <gtest/gtest.h>
 
 using namespace srsran;
@@ -65,7 +66,8 @@ TEST(harq_entity, after_max_ack_wait_timeout_dl_harqs_are_available_for_retx)
   for (unsigned i = 0; i != nof_harqs; ++i) {
     harq_ent.find_empty_dl_harq()->new_tx(sl_tx, ack_delay, 4, 0);
   }
-  for (unsigned i = 0; i != max_ack_wait_slots + ack_delay; ++i) {
+  //for (unsigned i = 0; i != max_ack_wait_slots + ack_delay; ++i) {
+  for (unsigned i = 0; i != max_ack_wait_slots + ack_delay + NTN_KOFFSET; ++i) { /* DCD */
     ASSERT_EQ(harq_ent.find_empty_dl_harq(), nullptr);
     ASSERT_EQ(harq_ent.find_pending_dl_retx(), nullptr);
     harq_ent.slot_indication(++sl_tx);
@@ -106,7 +108,8 @@ TEST_F(harq_entity_harq_1bit_tester, when_dtx_received_after_ack_then_dtx_is_ign
   unsigned k1 = 4, dai = 0;
 
   this->h_dl.new_tx(next_slot, k1, max_harq_retxs, dai);
-  slot_point pucch_slot = next_slot + k1;
+  //slot_point pucch_slot = next_slot + k1;
+  slot_point pucch_slot = next_slot + k1 + NTN_KOFFSET; /* DCD */
 
   while (next_slot != pucch_slot) {
     run_slot();
@@ -150,7 +153,8 @@ protected:
     h_dls.push_back(harq_ent.find_empty_dl_harq());
     h_dls[1]->new_tx(next_slot, 4, max_harq_retxs, 1);
 
-    pucch_slot = next_slot + 4;
+    //pucch_slot = next_slot + 4;
+    pucch_slot = next_slot + 4 + NTN_KOFFSET; /* DCD */
 
     while (next_slot <= pucch_slot + pucch_process_delay) {
       run_slot();

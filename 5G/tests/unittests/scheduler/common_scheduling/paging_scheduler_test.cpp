@@ -28,6 +28,7 @@
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "srsran/ran/duplex_mode.h"
+#include "srsran/koffset.h"
 #include <gtest/gtest.h>
 #include <random>
 #include <unordered_map>
@@ -114,8 +115,9 @@ protected:
     }
     const auto& ul_lst = msg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
     for (const auto& pusch : ul_lst) {
-      if (pusch.k2 > max_k_value) {
-        max_k_value = pusch.k2;
+      /* DCD account for Koffset */
+      if (pusch.k2 + NTN_KOFFSET > max_k_value) {
+        max_k_value = pusch.k2 + NTN_KOFFSET;
       }
     }
 

@@ -28,6 +28,7 @@
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "srsran/ran/resource_allocation/resource_allocation_frequency.h"
 #include "srsran/support/test_utils.h"
+#include "srsran/koffset.h"
 #include <gtest/gtest.h>
 #include <ostream>
 
@@ -67,10 +68,11 @@ protected:
       }
     }
     auto& ul_lst = cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
+    /* DCD account for Koffset - apparently, though, doesn't impact tests */
     for (auto& pusch : ul_lst) {
-      if (pusch.k2 > max_k_value) {
+      if (pusch.k2 + NTN_KOFFSET > max_k_value) {
         constexpr unsigned max_msg3_delta = 6;
-        max_k_value                       = pusch.k2 + max_msg3_delta;
+        max_k_value                       = pusch.k2 + max_msg3_delta + NTN_KOFFSET;
       }
     }
   }
@@ -241,7 +243,8 @@ protected:
 
   span<const ul_sched_info> scheduled_msg3_retxs(uint8_t time_resource) const
   {
-    return res_grid[get_pusch_td_resource(time_resource).k2].result.ul.puschs;
+    /* DCD need Koffset here too, but method is unused... */
+    return res_grid[get_pusch_td_resource(time_resource).k2 + NTN_KOFFSET].result.ul.puschs;
   }
 
   bool no_rar_grants_scheduled() const
@@ -359,7 +362,8 @@ protected:
 
     const auto& pusch_list = cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
     if (std::none_of(pusch_list.begin(), pusch_list.end(), [this, &pdcch_slot](const auto& pusch) {
-          return cell_cfg.is_fully_ul_enabled(pdcch_slot + pusch.k2);
+          /* DCD account for Koffset */
+          return cell_cfg.is_fully_ul_enabled(pdcch_slot + pusch.k2 + NTN_KOFFSET);
         })) {
       // slot for Msg3 reTx PUSCH is not UL slot.
       return false;
@@ -561,7 +565,9 @@ TEST_P(tdd_test, schedules_rar_in_valid_slots_when_tdd)
   rach_indication_message rach_ind = create_rach_indication(test_rgen::uniform_int<unsigned>(1, 10));
   handle_rach_indication(rach_ind);
 
+  unsigned failsafeCount = 0;
   for (unsigned nof_sched_grants = 0; nof_sched_grants < rach_ind.occasions[0].preambles.size();) {
+    ASSERT_TRUE(failsafeCount++ < cell_resource_allocator::RING_ALLOCATOR_SIZE) << "Exceeded failsafe counter"; /* DCD the test would enter an infinite loop */
     run_slot();
 
     if (not is_slot_valid_for_rar_pdcch()) {
@@ -594,7 +600,8 @@ TEST_P(tdd_test, schedules_msg3_retx_in_valid_slots_when_tdd)
   handle_rach_indication(rach_ind);
 
   unsigned       msg3_retx_count = 0;
-  const unsigned MAX_COUNT       = 100;
+  /* DCD account for Koffset (needs > RING_ALLOCATOR_SIZE for Koffset >= 1016)*/
+  const unsigned MAX_COUNT       = 3*cell_resource_allocator::RING_ALLOCATOR_SIZE/2;
   for (unsigned count = 0; count != MAX_COUNT; ++count) {
     run_slot();
 
@@ -626,12 +633,13 @@ INSTANTIATE_TEST_SUITE_P(ra_scheduler,
                                            test_params{.scs = subcarrier_spacing::kHz30, .k0 = 2, .k2s = {2}},
                                            test_params{.scs = subcarrier_spacing::kHz30, .k0 = 4, .k2s = {2}}));
 
+/* DCD added k2=8 in TDD or we may have no RAR-DL/msg3-UL slot depending on Koffset - TODO does it make sense? */
 INSTANTIATE_TEST_SUITE_P(ra_scheduler,
                          tdd_test,
-                         ::testing::Values(test_params{.scs = subcarrier_spacing::kHz15, .k0 = 0, .k2s = {2, 4}},
-                                           test_params{.scs = subcarrier_spacing::kHz15, .k0 = 2, .k2s = {2, 4}},
-                                           test_params{.scs = subcarrier_spacing::kHz30, .k0 = 0, .k2s = {2, 4}},
-                                           test_params{.scs = subcarrier_spacing::kHz30, .k0 = 2, .k2s = {2, 4}},
-                                           test_params{.scs = subcarrier_spacing::kHz30, .k0 = 4, .k2s = {2, 4}}));
+                         ::testing::Values(test_params{.scs = subcarrier_spacing::kHz15, .k0 = 0, .k2s = {2, 4, 8}},
+                                           test_params{.scs = subcarrier_spacing::kHz15, .k0 = 2, .k2s = {2, 4, 8}},
+                                           test_params{.scs = subcarrier_spacing::kHz30, .k0 = 0, .k2s = {2, 4, 8}},
+                                           test_params{.scs = subcarrier_spacing::kHz30, .k0 = 2, .k2s = {2, 4, 8}},
+                                           test_params{.scs = subcarrier_spacing::kHz30, .k0 = 4, .k2s = {2, 4, 8}}));
 
 } // namespace

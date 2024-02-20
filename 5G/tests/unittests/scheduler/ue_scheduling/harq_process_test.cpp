@@ -22,6 +22,7 @@
 
 #include "lib/scheduler/ue_scheduling/harq_process.h"
 #include "srsran/scheduler/scheduler_slot_handler.h"
+#include "srsran/koffset.h"
 #include <gtest/gtest.h>
 
 using namespace srsran;
@@ -72,7 +73,8 @@ TEST_F(dl_harq_process_tester, newtx_set_harq_to_not_empty)
   ASSERT_FALSE(h_dl.empty(0));
   ASSERT_TRUE(h_dl.empty(1));
   ASSERT_EQ(h_dl.slot_tx(), sl_tx);
-  ASSERT_EQ(h_dl.slot_ack(), sl_tx + k1);
+  //ASSERT_EQ(h_dl.slot_ack(), sl_tx + k1);
+  ASSERT_EQ(h_dl.slot_ack(), sl_tx + k1 + NTN_KOFFSET); /* DCD */
   ASSERT_EQ(h_dl.tb(0).nof_retxs, 0);
   ASSERT_EQ(h_dl.tb(0).max_nof_harq_retxs, max_harq_retxs);
 
@@ -174,7 +176,8 @@ protected:
 TEST_P(dl_harq_process_param_tester, when_ack_is_received_harq_is_set_as_empty)
 {
   h_dl.new_tx(sl_tx, k1, max_harq_retxs, 0);
-  for (unsigned i = 0; i != max_ack_wait_slots + k1 - 1; ++i) {
+  //for (unsigned i = 0; i != max_ack_wait_slots + k1 - 1; ++i)
+  for (unsigned i = 0; i != max_ack_wait_slots + k1 + NTN_KOFFSET - 1; ++i) { /* DCD */
     ASSERT_FALSE(h_dl.empty());
     ASSERT_FALSE(h_dl.has_pending_retx());
     slot_indication();
@@ -188,7 +191,8 @@ TEST_P(dl_harq_process_param_tester, when_ack_rx_wait_time_elapsed_harq_is_avail
 {
   h_dl.new_tx(sl_tx, k1, max_harq_retxs, 0);
   bool ndi = h_dl.tb(0).ndi;
-  for (unsigned i = 0; i != this->max_ack_wait_slots + this->k1; ++i) {
+  //for (unsigned i = 0; i != this->max_ack_wait_slots + this->k1; ++i) {
+  for (unsigned i = 0; i != this->max_ack_wait_slots + this->k1 + NTN_KOFFSET; ++i) { /* DCD */
     ASSERT_FALSE(h_dl.empty()) << "It is too early for HARQ to be reset";
     ASSERT_FALSE(h_dl.has_pending_retx()) << "It is too early for HARQ to be available for retx";
     ASSERT_EQ(h_dl.tb(0).nof_retxs, 0);
@@ -201,7 +205,8 @@ TEST_P(dl_harq_process_param_tester, when_ack_rx_wait_time_elapsed_harq_is_avail
 
     h_dl.new_retx(sl_tx, this->k1, 0);
     ASSERT_EQ(h_dl.tb(0).ndi, ndi) << "NDI should not change during retxs";
-    for (unsigned j = 0; j != max_ack_wait_slots + this->k1; ++j) {
+    //for (unsigned j = 0; j != max_ack_wait_slots + this->k1; ++j) {
+    for (unsigned j = 0; j != max_ack_wait_slots + this->k1 + NTN_KOFFSET; ++j) { /* DCD */
       ASSERT_FALSE(h_dl.empty()) << "It is too early for HARQ to be reset";
       ASSERT_FALSE(h_dl.has_pending_retx()) << "It is too early for HARQ to be available for retx";
       ASSERT_EQ(h_dl.tb(0).nof_retxs, i + 1) << "nof_retxs() has not been updated";
@@ -215,7 +220,8 @@ TEST_P(dl_harq_process_param_tester, when_ack_rx_wait_time_elapsed_harq_is_avail
 TEST_P(dl_harq_process_param_tester, harq_newtxs_flip_ndi)
 {
   h_dl.new_tx(sl_tx, k1, max_harq_retxs, 0);
-  for (unsigned i = 0; i != this->max_ack_wait_slots + k1 - 1; ++i) {
+  //for (unsigned i = 0; i != this->max_ack_wait_slots + k1 - 1; ++i) {
+    for (unsigned i = 0; i != this->max_ack_wait_slots + k1 + NTN_KOFFSET - 1; ++i) { /* DCD */
     ASSERT_FALSE(h_dl.empty());
     ASSERT_FALSE(h_dl.has_pending_retx());
     slot_indication();
@@ -269,14 +275,16 @@ TEST_F(dl_harq_process_param_tester_dtx, test_dtx)
 {
   const unsigned dtx_slot = 1;
   h_dl.new_tx(sl_tx, k1, max_harq_retxs, 0);
-  for (unsigned i = 0; i != max_ack_wait_slots + k1 + 1; ++i) {
+  //for (unsigned i = 0; i != max_ack_wait_slots + k1 + 1; ++i) {
+  for (unsigned i = 0; i != max_ack_wait_slots + k1 + NTN_KOFFSET + 1; ++i) { /* DCD */
     // Notify HARQ process with DTX (ACK not decoded).
     if (i == dtx_slot) {
       ASSERT_TRUE(h_dl.ack_info(0, mac_harq_ack_report_status::dtx) >= 0);
     }
 
     // Before reaching the ack_wait_slots, the HARQ should be neither empty nor having pending TX.
-    if (i < shortened_ack_wait_slots + k1) {
+    //if (i < shortened_ack_wait_slots + k1) {
+    if (i < shortened_ack_wait_slots + k1 + NTN_KOFFSET) { /* DCD */
       ASSERT_FALSE(h_dl.empty());
       ASSERT_FALSE(h_dl.has_pending_retx());
     }

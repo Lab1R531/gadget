@@ -22,6 +22,7 @@
 
 #include "uci_allocator_impl.h"
 #include "../support/pucch/pucch_default_resource.h"
+#include "srsran/koffset.h"
 
 using namespace srsran;
 
@@ -102,8 +103,9 @@ uci_allocation uci_allocator_impl::alloc_uci_harq_ue(cell_resource_allocator&   
 {
   uci_allocation uci_output;
 
+  /* DCD account for Koffset */
   // Retrieve the scheduling results for slot = k0 + k1;
-  cell_slot_resource_allocator& slot_alloc = res_alloc[pdsch_time_domain_resource + k1];
+  cell_slot_resource_allocator& slot_alloc = res_alloc[pdsch_time_domain_resource + k1 + NTN_KOFFSET];
 
   // Get existing PUSCH grant, if any, for a given UE's RNTI.
   auto&          puschs         = slot_alloc.result.ul.puschs;

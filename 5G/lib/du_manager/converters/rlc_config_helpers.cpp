@@ -21,6 +21,7 @@
  */
 
 #include "rlc_config_helpers.h"
+#include "srsran/koffset.h"
 
 using namespace srsran;
 using namespace srs_du;
@@ -65,17 +66,38 @@ rlc_mode srsran::srs_du::convert_asn1_f1ap_to_rlc_mode(drb_rlc_mode mode)
   return {};
 }
 
+// SW-MOD_A-40
+// Reads t_reassembly value for default src rlc configuration from environment variable
+const uint16_t DEFAULT_T_REASSEMBLY_RLC_CONF=35; //srs default
+static uint16_t read_t_reassembly_rlc_conf_env_var(){
+  const char* str = std::getenv("T_REASSEMBLY_RLC_CONF");
+  if (str != nullptr){
+    uint16_t k = (uint16_t)strtol(str, NULL, 10);
+    printf("[GAD] read T_REASSEMBLY_RLC_CONF = %d from env var T_REASSEMBLY_RLC_CONF\n", k);
+    printf("[GAD] warning: no consistency check performed (read value may not be valid)\n");
+    return k;
+  }
+  printf("[GAD] Using default T_REASSEMBLY_RLC_CONF value %d\n", DEFAULT_T_REASSEMBLY_RLC_CONF);
+  return DEFAULT_T_REASSEMBLY_RLC_CONF;
+}
+// End of SW-MOD_A-40
+
+
+
 rlc_config srsran::srs_du::make_default_srb_rlc_config()
 {
   rlc_config cfg;
   cfg.mode                    = rlc_mode::am;
   cfg.am.tx.sn_field_length   = rlc_am_sn_size::size12bits;
-  cfg.am.tx.t_poll_retx       = 45;
+  cfg.am.tx.t_poll_retx       = ADJUST_T_POLL_RETX_FOR_KOFFSET(45);
   cfg.am.tx.poll_pdu          = -1;
   cfg.am.tx.poll_byte         = -1;
   cfg.am.tx.max_retx_thresh   = 8;
   cfg.am.rx.sn_field_length   = rlc_am_sn_size::size12bits;
-  cfg.am.rx.t_reassembly      = 35;
+  // SW-MOD_A-40: reassigned for NTN test
+  // cfg.am.rx.t_reassembly      = 35; // srs default
+  cfg.am.rx.t_reassembly      = read_t_reassembly_rlc_conf_env_var();
+  // End of SW-MOD_A-40
   cfg.am.rx.t_status_prohibit = 0;
   return cfg;
 }

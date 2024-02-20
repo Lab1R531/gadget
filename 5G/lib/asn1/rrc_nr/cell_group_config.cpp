@@ -235,15 +235,158 @@ const char* t_reassembly_opts::to_string() const
   static const char* names[] = {"ms0",   "ms5",   "ms10",  "ms15",  "ms20",  "ms25",  "ms30",  "ms35",
                                 "ms40",  "ms45",  "ms50",  "ms55",  "ms60",  "ms65",  "ms70",  "ms75",
                                 "ms80",  "ms85",  "ms90",  "ms95",  "ms100", "ms110", "ms120", "ms130",
-                                "ms140", "ms150", "ms160", "ms170", "ms180", "ms190", "ms200", "spare1"};
-  return convert_enum_idx(names, 32, value, "t_reassembly_e");
+                                "ms140", "ms150", "ms160", "ms170", "ms180", "ms190", "ms200", 
+                                //SW-MOD_A-40: extended for NTN test
+                                "ms210", "ms220", "ms340", "ms350", "ms550", "ms1100", "ms1650", "ms2200",
+                                //End of SW-MOD_A-40                                
+                                "spare1"};
+  //SW-MOD_A-40: extended for NTN test
+  // return convert_enum_idx(names, 32, value, "t_reassembly_e");
+  return convert_enum_idx(names, 40, value, "t_reassembly_e");
+  // End of SW-MOD_A-40
 }
-uint8_t t_reassembly_opts::to_number() const
+uint16_t t_reassembly_opts::to_number() const
 {
-  static const uint8_t numbers[] = {0,  5,  10, 15, 20,  25,  30,  35,  40,  45,  50,  55,  60,  65,  70, 75,
-                                    80, 85, 90, 95, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200};
-  return map_enum_number(numbers, 31, value, "t_reassembly_e");
+  static const uint16_t numbers[] = {0,  5,  10, 15, 20,  25,  30,  35,  40,  45,  50,  55,  60,  65,  70, 75,
+                                    80, 85, 90, 95, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200,
+                                    //SW-MOD_A-40: extended for NTN test
+                                    210, 220, 340, 350, 550, 1100, 1650, 2200,
+                                    // End of SW-MOD_A-40
+                                    };
+  //SW-MOD_A-40: extended for NTN test
+  //return map_enum_number(numbers, 31, value, "t_reassembly_e");
+  return map_enum_number(numbers, 39, value, "t_reassembly_e");
+  // End of SW-MOD_A-40
 }
+
+
+// SW-MOD_A-40
+bool t_reassembly_opts::set_value_from_number(uint16_t val){
+  bool valid = true;
+  switch(val){
+    case 0: 
+      value=t_reassembly_opts::ms0;
+      break;
+    case 5: 
+      value=t_reassembly_opts::ms5;
+      break;
+    case 10: 
+      value=t_reassembly_opts::ms10;
+      break;
+    case 15: 
+      value=t_reassembly_opts::ms15;
+      break;
+    case 20: 
+      value=t_reassembly_opts::ms20;
+      break;
+    case 25: 
+      value=t_reassembly_opts::ms25;
+      break;
+    case 30: 
+      value=t_reassembly_opts::ms30;
+      break;
+    case 35: 
+      value=t_reassembly_opts::ms35;
+      break;
+    case 40: 
+      value=t_reassembly_opts::ms40;
+      break;
+    case 45: 
+      value=t_reassembly_opts::ms45;
+      break;
+    case 50: 
+      value=t_reassembly_opts::ms50;
+      break;
+    case 55: 
+      value=t_reassembly_opts::ms55;
+      break;
+    case 60: 
+      value=t_reassembly_opts::ms60;
+      break;
+    case 65: 
+      value=t_reassembly_opts::ms65;
+      break;
+    case 70: 
+      value=t_reassembly_opts::ms70;
+      break;
+    case 75: 
+      value=t_reassembly_opts::ms75;
+      break;
+    case 80: 
+      value=t_reassembly_opts::ms80;
+      break;
+    case 85: 
+      value=t_reassembly_opts::ms85;
+      break;
+    case 90: 
+      value=t_reassembly_opts::ms90;
+      break;
+    case 95: 
+      value=t_reassembly_opts::ms95;
+      break;
+    case 100: 
+      value=t_reassembly_opts::ms100;
+      break;
+    case 110: 
+      value=t_reassembly_opts::ms110;
+      break;
+    case 120: 
+      value=t_reassembly_opts::ms120;
+      break;
+    case 130: 
+      value=t_reassembly_opts::ms130;
+      break;
+    case 140: 
+      value=t_reassembly_opts::ms140;
+      break;
+    case 150: 
+      value=t_reassembly_opts::ms150;
+      break;
+    case 160: 
+      value=t_reassembly_opts::ms160;
+      break;
+    case 170: 
+      value=t_reassembly_opts::ms170;
+      break;
+    case 180: 
+      value=t_reassembly_opts::ms180;
+      break;
+    case 190: 
+      value=t_reassembly_opts::ms190;
+      break;
+    case 200: 
+      value=t_reassembly_opts::ms200;
+      break;
+    case 210: 
+      value=t_reassembly_opts::ms210;
+      break;
+    case 220: 
+      value=t_reassembly_opts::ms220;
+      break;
+    case 340: 
+      value=t_reassembly_opts::ms340;
+      break;
+    case 350: 
+      value=t_reassembly_opts::ms350;
+      break;
+    case 550: 
+      value=t_reassembly_opts::ms550;
+      break;
+    case 1100: 
+      value=t_reassembly_opts::ms1100;
+      break;
+    case 1650: 
+      value=t_reassembly_opts::ms1650;
+      break;
+    case 2200: 
+      value=t_reassembly_opts::ms2200;
+      break;
+    default:
+      valid = false;
+  }
+  return valid;
+}
+// End of SW-MOD_A-40
 
 // DRX-ConfigPTM-r17 ::= SEQUENCE
 SRSASN_CODE drx_cfg_ptm_r17_s::pack(bit_ref& bref) const

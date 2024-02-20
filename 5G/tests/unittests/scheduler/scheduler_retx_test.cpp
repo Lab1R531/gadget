@@ -28,6 +28,7 @@
 #include "test_utils/indication_generators.h"
 #include "test_utils/result_test_helpers.h"
 #include "test_utils/scheduler_test_bench.h"
+#include "srsran/koffset.h"
 #include <gtest/gtest.h>
 
 using namespace srsran;
@@ -106,7 +107,8 @@ TEST_P(scheduler_retx_tester, msg3_gets_retx_if_nacked)
   bench.sched->handle_rach_indication(
       create_rach_indication(bench.next_slot_rx(), {create_preamble(0, this->ue_rnti)}));
 
-  const ul_sched_info* grant = run_until_next_pusch_alloc(MAX_PUSCH_DELAY);
+  //const ul_sched_info* grant = run_until_next_pusch_alloc(MAX_PUSCH_DELAY);
+  const ul_sched_info* grant = run_until_next_pusch_alloc(MAX_PUSCH_DELAY+NTN_KOFFSET); /* DCD */
   ASSERT_NE(grant, nullptr) << "No Msg3 was scheduled";
   ASSERT_EQ(grant->pusch_cfg.rnti, ue_rnti);
   ASSERT_TRUE(grant->pusch_cfg.new_data);
@@ -124,7 +126,8 @@ TEST_P(scheduler_retx_tester, msg3_gets_retx_if_nacked)
 
   for (unsigned nof_retx_count = 0; nof_retx_count != params.nof_retxs; ++nof_retx_count) {
     // Ensure Msg3 retx is scheduled.
-    grant = run_until_next_pusch_alloc(MAX_RETX_DELAY);
+    //grant = run_until_next_pusch_alloc(MAX_RETX_DELAY);
+    grant = run_until_next_pusch_alloc(MAX_RETX_DELAY + NTN_KOFFSET); /* DCD */
     ASSERT_NE(grant, nullptr) << "No Msg3 retx was scheduled";
     ASSERT_EQ(grant->pusch_cfg.rnti, ue_rnti);
     ASSERT_FALSE(grant->pusch_cfg.new_data);
@@ -142,7 +145,8 @@ TEST_P(scheduler_retx_tester, msg3_gets_retx_if_nacked)
   }
 
   // No Msg3 retx should be scheduled after the HARQ is ACKed.
-  grant = run_until_next_pusch_alloc(MAX_RETX_DELAY);
+  //grant = run_until_next_pusch_alloc(MAX_RETX_DELAY);
+  grant = run_until_next_pusch_alloc(MAX_RETX_DELAY + NTN_KOFFSET); /* DCD */
   ASSERT_EQ(grant, nullptr) << "Msg3 HARQ should be empty";
 }
 
@@ -211,7 +215,7 @@ TEST_F(scheduler_missing_ack_tester, when_no_crc_arrives_then_ul_harq_eventually
 
   // Allocate all UL HARQs.
   for (unsigned i = 0; i != nof_harqs; ++i) {
-    const pdcch_ul_information* pdcch = this->run_until_next_ul_pdcch_alloc(2);
+    const pdcch_ul_information* pdcch = this->run_until_next_ul_pdcch_alloc(2+NTN_KOFFSET); /* DCD see new_tx */
     ASSERT_NE(pdcch, nullptr) << "Failed to allocate UL HARQ newtxs";
   }
 
@@ -235,7 +239,7 @@ TEST_F(scheduler_missing_ack_tester, when_no_crc_arrives_then_ul_harq_eventually
   bsr.reported_lcgs[0].nof_bytes = 100000000;
   bench.push_bsr(bsr);
   for (unsigned i = 0; i != nof_harqs; ++i) {
-    const pdcch_ul_information* pdcch = this->run_until_next_ul_pdcch_alloc(2);
+    const pdcch_ul_information* pdcch = this->run_until_next_ul_pdcch_alloc(2+NTN_KOFFSET); /* DCD see new_tx */
     ASSERT_NE(pdcch, nullptr) << "Failed to reuse UL HARQs";
   }
 }

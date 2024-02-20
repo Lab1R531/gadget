@@ -22,6 +22,7 @@
 
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "uci_test_utils.h"
+#include "srsran/koffset.h"
 #include <gtest/gtest.h>
 
 using namespace srsran;
@@ -326,10 +327,11 @@ TEST_F(test_pucch_sr_allocator_with_harq, test_pucch_sr_harq_grid)
                                                   t_bench.get_main_ue().get_pcell().cfg(),
                                                   t_bench.k0,
                                                   sl_point_harq_delay);
+  /* DCD I understand k1 = 0 is assumed here implicitly (see sl_point_harq_delay) */
   t_bench.pucch_alloc.pucch_allocate_sr_opportunity(
-      t_bench.res_grid[0], t_bench.get_main_ue().crnti, t_bench.get_main_ue().get_pcell().cfg());
+      t_bench.res_grid[0 + NTN_KOFFSET], t_bench.get_main_ue().crnti, t_bench.get_main_ue().get_pcell().cfg());
 
-  ASSERT_EQ(2, t_bench.res_grid[0].result.ul.pucchs.size());
+  ASSERT_EQ(2, t_bench.res_grid[0 + NTN_KOFFSET].result.ul.pucchs.size());
 }
 
 // Tests whether PUCCH allocator returns the correct values for the DCI.
@@ -353,13 +355,14 @@ TEST_F(test_pucch_sr_allocator_with_harq, test_pucch_sr_with_harq_format2)
                                                   t_bench.k0,
                                                   sl_point_harq_delay);
 
+  /* DCD I understand k1 = 0 is assumed here implicitly (see sl_point_harq_delay) */
   t_bench.pucch_alloc.pucch_allocate_sr_opportunity(
-      t_bench.res_grid[0], t_bench.get_main_ue().crnti, t_bench.get_main_ue().get_pcell().cfg());
+      t_bench.res_grid[0 + NTN_KOFFSET], t_bench.get_main_ue().crnti, t_bench.get_main_ue().get_pcell().cfg());
 
-  ASSERT_EQ(1, t_bench.res_grid[0].result.ul.pucchs.size());
-  ASSERT_EQ(pucch_format::FORMAT_2, t_bench.res_grid[0].result.ul.pucchs.front().format);
-  ASSERT_EQ(3, t_bench.res_grid[0].result.ul.pucchs.front().format_2.harq_ack_nof_bits);
-  ASSERT_EQ(sr_nof_bits::one, t_bench.res_grid[0].result.ul.pucchs.front().format_2.sr_bits);
+  ASSERT_EQ(1, t_bench.res_grid[0 + NTN_KOFFSET].result.ul.pucchs.size());
+  ASSERT_EQ(pucch_format::FORMAT_2, t_bench.res_grid[0 + NTN_KOFFSET].result.ul.pucchs.front().format);
+  ASSERT_EQ(3, t_bench.res_grid[0 + NTN_KOFFSET].result.ul.pucchs.front().format_2.harq_ack_nof_bits);
+  ASSERT_EQ(sr_nof_bits::one, t_bench.res_grid[0 + NTN_KOFFSET].result.ul.pucchs.front().format_2.sr_bits);
 }
 
 //

@@ -23,6 +23,7 @@
 #include "srsran/scheduler/config/scheduler_ue_config_validator.h"
 #include "srsran/ran/csi_rs/csi_rs_config_helpers.h"
 #include "srsran/support/config/validator_helpers.h"
+#include "srsran/koffset.h"
 
 using namespace srsran;
 using namespace config_validators;
@@ -251,9 +252,10 @@ srsran::config_validators::validate_csi_meas_cfg(const sched_ue_creation_request
             VERIFY(csi_rs_period_slots % tdd_period_slots == 0,
                    "NZP-CSI-RS Resource Id. {}'s period is not a multiple of the TDD pattern period",
                    res.res_id);
+            /* DCD account for Koffset in periodicity for CSI when in TDD */
             VERIFY(csi_rs_symbol_mask.find_highest() <
                        get_active_tdd_dl_symbols(
-                           tdd_cfg_common.value(), res.csi_res_offset.value() % tdd_period_slots, false)
+                           tdd_cfg_common.value(), (res.csi_res_offset.value() + NTN_KOFFSET) % tdd_period_slots, false)
                            .stop(),
                    "NZP-CSI-RS Resource Id. {} configuration would result in being scheduled non-DL "
                    "slots/symbols",

@@ -29,6 +29,7 @@
 #include "srsran/adt/circular_array.h"
 #include "srsran/ran/slot_point.h"
 #include "srsran/scheduler/mac_scheduler.h"
+#include "srsran/koffset.h"
 
 namespace srsran {
 
@@ -239,8 +240,9 @@ private:
 /// cell_slot_resource_grid objects, once they become old.
 struct cell_resource_allocator {
   /// Number of slots managed by this container.
+  /* DCD account for Koffset */
   static const size_t RING_ALLOCATOR_SIZE =
-      get_allocator_ring_size_gt_min(std::max(SCHEDULER_MAX_K0 + SCHEDULER_MAX_K1, SCHEDULER_MAX_K2 + MAX_MSG3_DELTA));
+      get_allocator_ring_size_gt_min(std::max(SCHEDULER_MAX_K0 + SCHEDULER_MAX_K1 + SCHEDULER_MAX_KOFFSET, SCHEDULER_MAX_K2 + MAX_MSG3_DELTA + SCHEDULER_MAX_KOFFSET));
 
   /// Cell configuration
   const cell_configuration& cfg;

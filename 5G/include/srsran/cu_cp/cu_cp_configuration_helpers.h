@@ -42,6 +42,47 @@ inline srs_cu_cp::cu_cp_configuration make_default_cu_cp_config()
 ///                   this value should be larger than the RLC's t-Reassembly. When using AM,
 ///                   this value should be larger than a few RLC retransmissions, see the RLC
 ///                   timers for details.
+
+// SW-MOD_A-40
+// Reads t_reordering value for 5QI7 from environment variable
+const pdcp_t_reordering DEFAULT_PDCP_T_REORDERING_5QI7= pdcp_t_reordering::ms100; // srs default
+static pdcp_t_reordering read_pdcp_5qi7_t_reordering_env_var(){
+  pdcp_t_reordering result = DEFAULT_PDCP_T_REORDERING_5QI7;
+  const char* str = std::getenv("PDCP_T_REORDERING_5QI7");
+  if (str != nullptr){
+    uint16_t int_result = (uint16_t)strtol(str, NULL, 10);
+    bool valid = pdcp_t_reordering_from_int(result, int_result); //side-effect on result
+    if (valid){
+      printf("[GAD] read PDCP_T_REORDERING_5QI7 = %d from env var PDCP_T_REORDERING_5QI7\n", pdcp_t_reordering_to_int(result));
+      printf("[GAD] warning: value is valid but may be inconsistent with other (e.g., RLC's t-reassembly)\n");
+    }
+    return result;
+  }
+  printf("[GAD] Using default PDCP_T_REORDERING_5QI7 value %d\n", pdcp_t_reordering_to_int(result));
+  return result;
+}
+
+// Reads t_reordering value for 5QI9 from environment variable
+const pdcp_t_reordering DEFAULT_PDCP_T_REORDERING_5QI9= pdcp_t_reordering::ms220; // srs default
+static pdcp_t_reordering read_pdcp_5qi9_t_reordering_env_var(){
+  pdcp_t_reordering result = DEFAULT_PDCP_T_REORDERING_5QI9;
+  const char* str = std::getenv("PDCP_T_REORDERING_5QI9");
+  if (str != nullptr){
+    uint16_t int_result = (uint16_t)strtol(str, NULL, 10);
+    bool valid = pdcp_t_reordering_from_int(result, int_result); //side-effect on result
+    if (valid){
+      printf("[GAD] read PDCP_T_REORDERING_5QI9 = %d from env var PDCP_T_REORDERING_5QI9\n", pdcp_t_reordering_to_int(result));
+      printf("[GAD] warning: value is valid but may be inconsistent with other (e.g., RLC's t-reassembly)\n");
+    }
+    return result;
+  }
+  printf("[GAD] Using default PDCP_T_REORDERING_5QI9 value %d\n", pdcp_t_reordering_to_int(result));
+  return result;
+}
+// End of SW-MOD_A-40
+
+
+
 inline std::map<five_qi_t, srs_cu_cp::cu_cp_qos_config> make_default_cu_cp_qos_config_list()
 {
   std::map<five_qi_t, srs_cu_cp::cu_cp_qos_config> qos_list = {};
@@ -63,7 +104,11 @@ inline std::map<five_qi_t, srs_cu_cp::cu_cp_qos_config> make_default_cu_cp_qos_c
     // > Rx
     pdcp_cfg.rx.sn_size               = pdcp_sn_size::size12bits;
     pdcp_cfg.rx.out_of_order_delivery = false;
-    pdcp_cfg.rx.t_reordering          = pdcp_t_reordering::ms100;
+    //SW-MOD_A-40
+    // pdcp_cfg.rx.t_reordering          = pdcp_t_reordering::ms100; // srs default
+    pdcp_cfg.rx.t_reordering          = read_pdcp_5qi7_t_reordering_env_var();
+    //End of SW-MOD_A-40
+
 
     cfg.pdcp                     = pdcp_cfg;
     qos_list[uint_to_five_qi(7)] = cfg;
@@ -86,8 +131,10 @@ inline std::map<five_qi_t, srs_cu_cp::cu_cp_qos_config> make_default_cu_cp_qos_c
     // > Rx
     pdcp_cfg.rx.sn_size               = pdcp_sn_size::size12bits;
     pdcp_cfg.rx.out_of_order_delivery = false;
-    pdcp_cfg.rx.t_reordering          = pdcp_t_reordering::ms220;
-
+    //SW-MOD_A-40
+    // pdcp_cfg.rx.t_reordering          = pdcp_t_reordering::ms220; // srs default
+    pdcp_cfg.rx.t_reordering          = read_pdcp_5qi9_t_reordering_env_var();
+    // End of SW-MOD_A-40
     cfg.pdcp                     = pdcp_cfg;
     qos_list[uint_to_five_qi(9)] = cfg;
   }

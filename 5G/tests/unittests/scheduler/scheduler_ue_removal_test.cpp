@@ -23,6 +23,7 @@
 #include "test_utils/config_generators.h"
 #include "test_utils/result_test_helpers.h"
 #include "test_utils/scheduler_test_bench.h"
+#include "srsran/koffset.h"
 #include <gtest/gtest.h>
 
 using namespace srsran;
@@ -88,7 +89,8 @@ TEST_F(sched_ue_removal_test, when_ue_has_pending_harqs_then_scheduler_waits_for
   rem_ue(ue_index);
 
   // Wait for the right slot for ACK.
-  const unsigned    ACK_TIMEOUT = 10;
+  //const unsigned    ACK_TIMEOUT = 10;
+  const unsigned    ACK_TIMEOUT = 10 + NTN_KOFFSET; /* DCD */
   const pucch_info* pucch       = nullptr;
   for (unsigned count = 0; count != ACK_TIMEOUT; ++count) {
     this->run_slot();

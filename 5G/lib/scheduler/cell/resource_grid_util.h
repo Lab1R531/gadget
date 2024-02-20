@@ -45,7 +45,25 @@ constexpr inline unsigned get_allocator_ring_size_gt_min(unsigned minimum_value)
   if (minimum_value < 40) {
     return 40;
   }
-  return 80;
+  /* DCD account for Koffset - default of return 80 is no longer okay */
+  /* Based on include/srsran/ran/slot_point.h we can desume that nof_slots_per_system_frame()
+   * will return nof_slots_per_frame() * NOF_SFNS, with the latter being 1024U. The former
+   * returns of_slots_per_subframe() * NOF_SUBFRAMES_PER_FRAME, with the latter being 10U.
+   * I am assuming that 1024 is a safe value and, pending validation, that 2048 is too. */
+  if (minimum_value < 256) {
+    return 256;
+  }
+
+  if (minimum_value < 512) {
+    return 512;
+  }
+
+  if (minimum_value < 1024) {
+    return 1024;
+  }
+
+  srsran_assert(minimum_value < 2048, "Requesting too many slots for ring allocator {}", minimum_value);
+  return 2048;
 }
 
 } // namespace srsran

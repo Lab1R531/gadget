@@ -22,6 +22,9 @@
 
 #include "rlc_rx_um_entity.h"
 
+extern unsigned int ntn_extended_rtt_ms;              // SW-MOD_A-50
+extern unsigned int ntn_t_reassembly_timer_increment; // SW-MOD_A-50
+
 using namespace srsran;
 
 rlc_rx_um_entity::rlc_rx_um_entity(du_ue_index_t                     du_index,
@@ -43,7 +46,7 @@ rlc_rx_um_entity::rlc_rx_um_entity(du_ue_index_t                     du_index,
 
   // configure reassembly_timer
   if (cfg.t_reassembly > 0) {
-    reassembly_timer.set(std::chrono::milliseconds(cfg.t_reassembly),
+    reassembly_timer.set(std::chrono::milliseconds(cfg.t_reassembly + ntn_extended_rtt_ms + ntn_t_reassembly_timer_increment), // SW-MOD_A-50
                          [this](timer_id_t tid) { on_expired_status_prohibit_timer(); });
   }
   logger.log_info("RLC UM configured. {}", cfg);

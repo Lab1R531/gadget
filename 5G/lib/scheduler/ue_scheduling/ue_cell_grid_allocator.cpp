@@ -27,6 +27,7 @@
 #include "ue_sch_pdu_builder.h"
 #include "srsran/ran/pdcch/coreset.h"
 #include "srsran/support/error_handling.h"
+#include "srsran/koffset.h" /* DCD */
 
 using namespace srsran;
 
@@ -153,7 +154,7 @@ bool ue_cell_grid_allocator::allocate_dl_grant(const ue_pdsch_grant& grant)
   auto           k1_list = ue_cell_cfg.get_k1_candidates();
   uci_allocation uci     = {};
   for (const uint8_t k1_candidate : k1_list) {
-    const slot_point uci_slot = pdsch_alloc.slot + k1_candidate;
+    const slot_point uci_slot = pdsch_alloc.slot + k1_candidate + NTN_KOFFSET; /* DCD account for Koffset */;
     if (not cell_cfg.is_fully_ul_enabled(uci_slot)) {
       continue;
     }
@@ -333,7 +334,8 @@ bool ue_cell_grid_allocator::allocate_ul_grant(const ue_pusch_grant& grant)
 
   // Fetch PDCCH and PDSCH resource grid allocators.
   cell_slot_resource_allocator& pdcch_alloc = get_res_alloc(grant.cell_index)[pdcch_delay_in_slots];
-  cell_slot_resource_allocator& pusch_alloc = get_res_alloc(grant.cell_index)[pdcch_delay_in_slots + pusch_td_cfg.k2];
+  //cell_slot_resource_allocator& pusch_alloc = get_res_alloc(grant.cell_index)[pdcch_delay_in_slots + pusch_td_cfg.k2];
+  cell_slot_resource_allocator& pusch_alloc = get_res_alloc(grant.cell_index)[pdcch_delay_in_slots + pusch_td_cfg.k2 + NTN_KOFFSET]; /* DCD */
 
   if (not cell_cfg.is_dl_enabled(pdcch_alloc.slot)) {
     logger.warning("Failed to allocate PUSCH in slot={}. Cause: DL is not active in the PDCCH slot", pusch_alloc.slot);
