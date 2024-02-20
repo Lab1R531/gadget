@@ -22,6 +22,9 @@
 #include "srsue/hdr/phy/nr/sync_sa.h"
 #include "srsran/radio/rf_buffer.h"
 
+extern uint32_t ntn_extended_rtt_ms;      // SW-MOD_A-50
+extern uint32_t ntn_extended_rtt_slots;   // SW-MOD_A-50
+
 namespace srsue {
 namespace nr {
 sync_sa::sync_sa(srslog::basic_logger& logger_, worker_pool& workers_) :
@@ -88,6 +91,7 @@ bool sync_sa::reset()
   // Wait worker pool to finish any processing
   tti_semaphore.wait_all();
   ta.set_base_sec(0);
+  workers.set_extended_rtt(ntn_extended_rtt_ms); // SW-MOD_A-50
 
   return true;
 }
@@ -95,16 +99,19 @@ bool sync_sa::reset()
 void sync_sa::add_ta_cmd_rar(uint32_t tti_, uint32_t ta_cmd)
 {
   ta.add_ta_cmd_rar(tti_, ta_cmd);
+  workers.set_extended_rtt(ntn_extended_rtt_ms); // SW-MOD_A-50
 }
 
 void sync_sa::add_ta_cmd_new(uint32_t tti_, uint32_t ta_cmd)
 {
   ta.add_ta_cmd_new(tti_, ta_cmd);
+  workers.set_extended_rtt(ntn_extended_rtt_ms); // SW-MOD_A-50
 }
 
 void sync_sa::add_ta_offset(uint32_t ta_offset)
 {
   ta.add_ta_offset(ta_offset);
+  workers.set_extended_rtt(ntn_extended_rtt_ms); // SW-MOD_A-50
 }
 
 void sync_sa::cell_go_idle()
@@ -363,6 +370,10 @@ void sync_sa::worker_end(const srsran::phy_common_interface::worker_context_t& w
   // Add current time alignment
   srsran::rf_timestamp_t tx_time = w_ctx.tx_time; // get transmit time from the last worker
   // todo: tx_time.sub((double)ta.get_sec());
+      
+    // SW-MOD_A-40
+    // tx_time.add(0.25);
+    // End of SW-MOD_A-40
 
   // Check if any worker had a transmission
   if (tx_enable) {

@@ -173,7 +173,7 @@ public:
    * @param f_id The index of the specified PRACH in the frequency domain (0 <= f_id < 8).
    * @param ul_carrier_id The UL carrier used for Msg1 transmission (0 for NUL carrier, and 1 for SUL carrier).
    */
-  virtual void prach_sent(uint32_t tti, uint32_t s_id, uint32_t t_id, uint32_t f_id, uint32_t ul_carrier_id) = 0;
+  virtual void prach_sent(uint32_t tti, uint32_t s_id, uint32_t t_id, uint32_t f_id, uint32_t ul_carrier_id, uint32_t extended_rtt) = 0; // SW-MOD_A-50
 
   /**
    * @brief Indicate a valid SR transmission occasion on the valid PUCCH resource for SR configured; and the SR

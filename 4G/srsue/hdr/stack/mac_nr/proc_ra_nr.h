@@ -53,7 +53,7 @@ public:
   void     received_contention_resolution(bool is_successful);
 
   // PHY interfaces
-  void prach_sent(uint32_t tti, uint32_t s_id, uint32_t t_id, uint32_t f_id, uint32_t ul_carrier_id);
+  void prach_sent(uint32_t tti, uint32_t s_id, uint32_t t_id, uint32_t f_id, uint32_t ul_carrier_id, uint32_t extended_rtt); // SW-MOD_A-50
   void handle_rar_pdu(mac_interface_phy_nr::tb_action_dl_result_t& grant);
   void pdcch_to_crnti();
 

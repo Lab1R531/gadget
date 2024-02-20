@@ -46,6 +46,8 @@ private:
   std::vector<bool>                        pending_cfgs;
   std::mutex                               cfg_mutex;
 
+  uint32_t                                 extended_rtt       = 0; // SW-MOD_A-50
+
 public:
   sf_worker* operator[](std::size_t pos) { return workers.at(pos).get(); }
 
@@ -66,6 +68,10 @@ public:
   bool       has_valid_sr_resource(uint32_t sr_id);
   void       clear_pending_grants();
   void       get_metrics(phy_metrics_t& m);
+
+  void       set_extended_rtt(uint32_t _extended_rtt) { // SW-MOD_A-50
+    extended_rtt = _extended_rtt;                       // SW-MOD_A-50
+  }                                                     // SW-MOD_A-50
 
   /**
    * @brief Sets external CFO to compensate UL signal frequency offset

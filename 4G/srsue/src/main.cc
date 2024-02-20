@@ -35,6 +35,7 @@
 #include "srsue/hdr/metrics_json.h"
 #include "srsue/hdr/metrics_stdout.h"
 #include "srsue/hdr/ue.h"
+#include "koffset.h"
 #include <boost/program_options.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <csignal>
@@ -721,11 +722,72 @@ static void signal_handler()
   running = false;
 }
 
+// SW-MOD_A-30, SW-MOD_A-50
+
+extern unsigned int ntn_n_ta_common;                              // SW-MOD_A-30
+extern unsigned int ntn_n_ta_ue_specific;                         // SW-MOD_A-30
+extern unsigned int ntn_extended_rtt_ms;                          // SW-MOD_A-50
+extern unsigned int ntn_extended_rtt_slots;                       // SW-MOD_A-50
+extern unsigned int ntn_ra_response_window_timer_increment;       // SW-MOD_A-50
+extern unsigned int ntn_ra_response_window_slot_start_increment;  // SW-MOD_A-50
+extern unsigned int ntn_ra_response_window_slot_length_increment; // SW-MOD_A-50
+extern unsigned int ntn_ra_contention_resolution_timer_increment; // SW-MOD_A-50
+extern unsigned int ntn_t_reassembly_timer_increment;             // SW-MOD_A-50
+extern unsigned int ntn_discard_timer_increment;                  // SW-MOD_A-50
+extern unsigned int ntn_t_reordering_timer_increment;             // SW-MOD_A-50
+
+void read_ntn_env_params(void) {
+
+#define GET_VAR_FROM_ENV(name, var, default_value) \
+  do { \
+    const char* str = getenv(name); \
+    uint32_t v = default_value; \
+    if (str != NULL) { \
+      v = (uint32_t) strtol(str, NULL, 10); \
+      var = v; \
+    } \
+    printf("NTN: Setting %s to value %u\n", name, var); \
+  } while (0);
+
+  GET_VAR_FROM_ENV("NTN_N_TA_COMMON", ntn_n_ta_common, 0);            // SW-MOD_A-30
+  GET_VAR_FROM_ENV("NTN_N_TA_UE_SPECIFIC", ntn_n_ta_ue_specific, 0);  // SW-MOD_A-30
+
+  GET_VAR_FROM_ENV("NTN_EXT_RTT_SLOTS", ntn_extended_rtt_slots, 0);   // SW-MOD_A-50
+  GET_VAR_FROM_ENV("NTN_EXT_RTT_MS", ntn_extended_rtt_ms, 0);         // SW-MOD_A-50
+
+  GET_VAR_FROM_ENV("NTN_RA_RESPONSE_WINDOW_TIMER_INCREMENT", ntn_ra_response_window_timer_increment, 0);            // SW-MOD_A-50
+  GET_VAR_FROM_ENV("NTN_RA_RESPONSE_WINDOW_SLOT_START_INCREMENT", ntn_ra_response_window_slot_start_increment, 0);  // SW-MOD_A-50
+  GET_VAR_FROM_ENV("NTN_RA_RESPONSE_WINDOW_SLOT_LENGTH_INCREMENT", ntn_ra_response_window_slot_length_increment, 0);// SW-MOD_A-50
+  GET_VAR_FROM_ENV("NTN_RA_CONTENTION_RESOLUTION_TIMER_INCREMENT", ntn_ra_contention_resolution_timer_increment, 0);// SW-MOD_A-50
+  GET_VAR_FROM_ENV("NTN_T_REASSEMBLY_TIMER_INCREMENT", ntn_t_reassembly_timer_increment, 0);                        // SW-MOD_A-50
+  GET_VAR_FROM_ENV("NTN_DISCARD_TIMER_INCREMENT", ntn_discard_timer_increment, 0);                                  // SW-MOD_A-50
+  GET_VAR_FROM_ENV("NTN_T_REORDERING_TIMER_INCREMENT", ntn_t_reordering_timer_increment, 0);                        // SW-MOD_A-50
+}
+
+static uint16_t read_koffset_from_env() {
+  const char* str = getenv("NTN_KOFFSET");
+  if (str != NULL) {
+      uint16_t k = (uint16_t)strtol(str, NULL, 10);
+      if (k <= 1023) {
+        printf("DCD setting Koffset = %d from NTN_KOFFSET environment variable\n", k);
+        return k;
+      }
+      printf("DCD invalid requested Koffset value %s\n", str);
+  }
+  printf("DCD using default Koffset value %d\n", DEFAULT_NTN_KOFFSET);
+  return DEFAULT_NTN_KOFFSET;
+}
+
 int main(int argc, char* argv[])
 {
+  read_ntn_env_params(); // SW-MOD_A-30, SW-MOD_A-50
+
   srsran_register_signal_handler(signal_handler);
   add_emergency_cleanup_handler(emergency_cleanup_handler, nullptr);
   srsran_debug_handle_crash(argc, argv);
+
+  /* DCD parse Koffset */
+  NTN_KOFFSET = read_koffset_from_env();
 
   all_args_t args = {};
   if (int err = parse_args(&args, argc, argv)) {

@@ -75,7 +75,8 @@ public:
                   const uint32_t s_id,
                   const uint32_t t_id,
                   const uint32_t f_id,
-                  const uint32_t ul_carrier_id);
+                  const uint32_t ul_carrier_id,
+                  const uint32_t extended_rtt); // SW-MOD_A-50
   bool sr_opportunity(uint32_t tti, uint32_t sr_id, bool meas_gap, bool ul_sch_tx);
 
   /// Stack interface

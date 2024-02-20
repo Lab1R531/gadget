@@ -103,9 +103,9 @@ public:
   {
     mac->new_grant_ul(cc_idx, grant, action);
   }
-  void prach_sent(uint32_t tti, uint32_t s_id, uint32_t t_id, uint32_t f_id, uint32_t ul_carrier_id) final
+  void prach_sent(uint32_t tti, uint32_t s_id, uint32_t t_id, uint32_t f_id, uint32_t ul_carrier_id, uint32_t extended_rtt) final // SW-MOD_A-50
   {
-    mac->prach_sent(tti, s_id, t_id, f_id, ul_carrier_id);
+    mac->prach_sent(tti, s_id, t_id, f_id, ul_carrier_id, extended_rtt); // SW-MOD_A-50
   }
   bool sr_opportunity(uint32_t tti, uint32_t sr_id, bool meas_gap, bool ul_sch_tx) final
   {

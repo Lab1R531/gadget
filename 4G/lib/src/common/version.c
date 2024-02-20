@@ -21,6 +21,22 @@
 
 #include "srsran/version.h"
 
+//#define SRSRAN_LTE_TS (1.0f / (480000.0f * 4096.0f))
+#define SRSRAN_LTE_TS (1.0f / (15000.0f * 2048.0f))                                         // SW-MOD_A-50
+#define RTT_MS_TO_SLOTS(rtt_ts) ((unsigned int)((((float)rtt_ts) / 1e3f) / SRSRAN_LTE_TS))  // SW-MOD_A-50
+
+unsigned int ntn_n_ta_common = 0;                               // SW-MOD_A-30
+unsigned int ntn_n_ta_ue_specific = 0;                          // SW-MOD_A-30
+unsigned int ntn_extended_rtt_ms    = 0;                        // SW-MOD_A-50  
+unsigned int ntn_extended_rtt_slots = 0;                        // SW-MOD_A-50
+unsigned int ntn_ra_response_window_timer_increment = 0;        // SW-MOD_A-50
+unsigned int ntn_ra_response_window_slot_start_increment = 0;   // SW-MOD_A-50
+unsigned int ntn_ra_response_window_slot_length_increment = 0;  // SW-MOD_A-50
+unsigned int ntn_ra_contention_resolution_timer_increment = 0;  // SW-MOD_A-50
+unsigned int ntn_t_reassembly_timer_increment = 0;              // SW-MOD_A-50
+unsigned int ntn_discard_timer_increment = 0;                   // SW-MOD_A-50
+unsigned int ntn_t_reordering_timer_increment = 0;              // SW-MOD_A-50
+
 char* srsran_get_version()
 {
   return SRSRAN_VERSION_STRING;

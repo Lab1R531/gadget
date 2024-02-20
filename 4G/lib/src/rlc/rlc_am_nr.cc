@@ -29,6 +29,9 @@
 #include <iostream>
 #include <set>
 
+extern uint32_t ntn_extended_rtt_ms;                    // SW-MOD_A-50
+extern unsigned int ntn_t_reassembly_timer_increment;   // SW-MOD_A-50
+
 namespace srsran {
 
 const static uint32_t max_tx_queue_size = 256;
@@ -1389,7 +1392,7 @@ bool rlc_am_nr_rx::configure(const rlc_config_t& cfg_)
 
   // Configure t_reassembly timer
   if (cfg.t_reassembly > 0) {
-    reassembly_timer.set(static_cast<uint32_t>(cfg.t_reassembly), [this](uint32_t timerid) { timer_expired(timerid); });
+    reassembly_timer.set(static_cast<uint32_t>(cfg.t_reassembly + ntn_extended_rtt_ms + ntn_t_reassembly_timer_increment), [this](uint32_t timerid) { timer_expired(timerid); }); // SW-MOD_A-50
   }
 
   mod_nr = cardinality(cfg.rx_sn_field_length);

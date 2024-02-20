@@ -129,7 +129,7 @@ sf_worker* worker_pool::wait_worker(uint32_t tti)
 
     // Notify MAC about PRACH transmission
     phy_state.stack->prach_sent(
-        TTI_TX(tti), srsran_prach_nr_start_symbol(config_idx, mode), SRSRAN_SLOT_NR_MOD(scs, TTI_TX(tti)), 0, 0);
+        TTI_TX(tti), srsran_prach_nr_start_symbol(config_idx, mode), SRSRAN_SLOT_NR_MOD(scs, TTI_TX(tti)), 0, 0, extended_rtt); // SW-MOD_A-50
   }
 
   // Set PRACH transmission buffer in workers if it is pending

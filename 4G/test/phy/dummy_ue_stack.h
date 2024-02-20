@@ -176,7 +176,7 @@ public:
     action->tb.payload    = tx_harq_proc[grant.pid].get_tb(grant.tbs);
     action->tb.softbuffer = &tx_harq_proc[grant.pid].get_softbuffer(grant.ndi);
   }
-  void prach_sent(uint32_t tti, uint32_t s_id, uint32_t t_id, uint32_t f_id, uint32_t ul_carrier_id) override
+  void prach_sent(uint32_t tti, uint32_t s_id, uint32_t t_id, uint32_t f_id, uint32_t ul_carrier_id, uint32_t extended_rtt) override // SW-MOD_A-50
   {
     std::unique_lock<std::mutex> lock(rnti_mutex);
     dl_rnti_type = srsran_rnti_type_ra;
