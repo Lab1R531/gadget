@@ -1,1 +1,6 @@
-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
+The following are the credential to execute git commands (clone, pull, push, etc.) on the github gadget repository:
+- Username: 
+    Rinelli96
+- Password:
+    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
+
