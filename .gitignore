@@ -1,2 +1,6 @@
 4G/build
 5G/build
+config/UE_NTN.conf
+config/GNB_NTN.yaml
+GNB_start.sh
+UE_start.sh

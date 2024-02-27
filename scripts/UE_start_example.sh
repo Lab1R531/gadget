@@ -42,5 +42,5 @@ export NTN_T_REORDERING_TIMER_INCREMENT=0
 #export T_REASSEMBLY_RLC_CONF=35
 #export T_REASSEMBLY_SRB1_CONF=35
 
-sudo -E 4G/build/srsue/src/srsue config/UE_NTN.conf
+sudo -E ../4G/build/srsue/src/srsue ../config/UE_NTN.conf
        
