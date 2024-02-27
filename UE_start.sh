@@ -15,6 +15,8 @@ Tc=$(bc <<< "scale=4; 10^9/(480000*4096)")
 Ts=$(bc <<< "scale=4; 64*$Tc")
 Tm=$(bc <<< "scale=4; 8*$Tc")
 
+
+
 Tot_Delay_ns=0
 TA=$(bc <<< "scale=0; $Tot_Delay_ns/$Ts")
 

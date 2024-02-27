@@ -15,7 +15,10 @@ done
 echo "Running performance.." | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
 echo "Running gNB 5G NTN"
+   
 
+
+   
 export NTN_N_TA_COMMON=0
 
 export NTN_N_TA_UE_SPECIFIC=0
