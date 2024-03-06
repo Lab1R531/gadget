@@ -12,7 +12,7 @@ for var in $(compgen -e | grep -E "^NTN_|^T_|^PDCP_T"); do
 done
 
 
-echo "Running performance.." | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+echo "performance" | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
 echo "Running gNB 5G NTN"
 
