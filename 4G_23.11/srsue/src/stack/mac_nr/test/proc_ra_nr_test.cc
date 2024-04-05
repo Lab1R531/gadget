@@ -124,7 +124,7 @@ int proc_ra_normal_test()
   TESTASSERT(preamble_received_target_power == -110);
   // Simulate PHY and call prach_sent (random values)
   uint32_t tti_start = 0;
-  proc_ra_nr.prach_sent(tti_start, 7, 1, 0, 0);
+  proc_ra_nr.prach_sent(tti_start, 7, 1, 0, 0, 0); // SW-MOD_A-50
 
   for (uint32_t i = tti_start; i < rach_cfg.ra_responseWindow; i++) {
     // update clock and run internal tasks
@@ -188,7 +188,7 @@ int proc_ra_timeout_test()
   uint32_t tti = 0;
 
   for (uint32_t j = 0; j < rach_cfg.preambleTransMax; j++) {
-    proc_ra_nr.prach_sent(tti, 7, 1, 0, 0);
+    proc_ra_nr.prach_sent(tti, 7, 1, 0, 0, 0); // SW-MOD_A-50
     uint32_t i = 0;
     for (i = tti; i < tti + rach_cfg.ra_responseWindow + 100; i++) {
       // update clock and run internal tasks

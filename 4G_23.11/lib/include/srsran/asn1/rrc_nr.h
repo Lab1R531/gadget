@@ -18384,13 +18384,29 @@ struct t_reassembly_opts {
     ms180,
     ms190,
     ms200,
+    // SW-MOD_A-40: Added for NTN test, to accommodate extended timers
+    ms210, 
+    ms220, 
+    ms340, 
+    ms350, 
+    ms550, 
+    ms1100, 
+    ms1650, 
+    ms2200,
+    // End of SW-MOD_A-40
     spare1,
     nulltype
   } value;
-  typedef uint8_t number_type;
+   // SW-MOD_A-40: Extended uint16_t for NTN test
+  //typedef uint8_t number_type; // original srsran
+  typedef uint16_t number_type;
+    // End of SW-MOD_A-40
 
   const char* to_string() const;
-  uint8_t     to_number() const;
+  // SW-MOD_A-40: Extended uint16_t for NTN test
+  // uint8_t     to_number() const; // oringinal srsran
+  uint16_t     to_number() const;
+  // End of SW-MOD_A-40
 };
 typedef enumerated<t_reassembly_opts> t_reassembly_e;
 

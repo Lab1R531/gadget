@@ -24,6 +24,13 @@
 #include "srsran/mac/mac_rar_pdu_nr.h"
 #include "srsue/hdr/stack/mac_nr/mac_nr.h"
 
+extern uint32_t ntn_extended_rtt_ms;                          // SW-MOD_A-50
+extern uint32_t ntn_extended_rtt_slots;                       // SW-MOD_A-50
+extern uint32_t ntn_ra_response_window_timer_increment;       // SW-MOD_A-50
+extern uint32_t ntn_ra_response_window_slot_start_increment;  // SW-MOD_A-50
+extern uint32_t ntn_ra_response_window_slot_length_increment; // SW-MOD_A-50
+extern uint32_t ntn_ra_contention_resolution_timer_increment; // SW-MOD_A-50
+
 namespace srsue {
 
 const char* state_str_nr[] = {"RA:    IDLE:   ",
@@ -175,6 +182,7 @@ void proc_ra_nr::ra_resource_selection()
 // 5.1.3 Random Access Preamble transmission
 void proc_ra_nr::ra_preamble_transmission()
 {
+  printf("SENDING PRACH\n");
   uint32_t delta_preamble        = 0; // TODO calulate the delta preamble based on delta_preamble_db_table_nr
   preamble_received_target_power = rach_cfg.PreambleReceivedTargetPower + delta_preamble +
                                    (preamble_transmission_counter - 1) * rach_cfg.powerRampingStep +
@@ -241,9 +249,10 @@ void proc_ra_nr::ra_response_reception(const mac_interface_phy_nr::tb_action_dl_
         } else {
           preamble_backoff = 0;
         }
-
-        contention_resolution_timer.set(rach_cfg.ra_ContentionResolutionTimer,
-                                        [this](uint32_t tid) { timer_expired(tid); });
+        // [GAD] TODO: CHECK HOW TO ADD THE INCREMENT IN THIS CASE ! (THE IMPACT OF EVO MODIFICATION)
+        // [GAD] This part of the code was outside the loop, now it has been incorporated into the loop and is execuded for each of the subpdu
+        logger.info("NTN: rach_cfg.ra_ContentionResolutionTimer: %u", rach_cfg.ra_ContentionResolutionTimer);
+        contention_resolution_timer.set(rach_cfg.ra_ContentionResolutionTimer + ntn_ra_contention_resolution_timer_increment + ntn_extended_rtt_ms, [this](uint32_t tid) { timer_expired(tid); }); // SW-MOD_A-50
         contention_resolution_timer.run();
         logger.debug("Waiting for Contention Resolution");
         state = WAITING_FOR_CONTENTION_RESOLUTION;
@@ -341,9 +350,9 @@ void proc_ra_nr::ra_error()
 }
 
 // Is called by PHY once it has transmitted the prach transmitted, than configure RA-RNTI and wait for RAR reception
-void proc_ra_nr::prach_sent(uint32_t tti, uint32_t s_id, uint32_t t_id, uint32_t f_id, uint32_t ul_carrier_id)
+void proc_ra_nr::prach_sent(uint32_t tti, uint32_t s_id, uint32_t t_id, uint32_t f_id, uint32_t ul_carrier_id, uint32_t extended_rtt_ms) // SW-MOD_A-50
 {
-  task_queue.push([this, tti, s_id, t_id, f_id, ul_carrier_id]() {
+  task_queue.push([this, tti, s_id, t_id, f_id, ul_carrier_id, extended_rtt_ms]() { // SW-MOD_A-50
     if (state != WAITING_FOR_PRACH_SENT) {
       logger.warning("Wrong state for prach sent notification by phy %s (expected state %s)",
                      srsran::enum_to_text(state_str_nr, (uint32_t)ra_state_t::MAX_RA_STATES, state),
@@ -367,13 +376,13 @@ void proc_ra_nr::prach_sent(uint32_t tti, uint32_t s_id, uint32_t t_id, uint32_t
                     preamble_index,
                     rar_rnti,
                     tti);
-    uint32_t rar_window_st = TTI_ADD(tti, 3);
+    uint32_t rar_window_st = TTI_ADD(tti, 3) + ntn_ra_response_window_slot_start_increment + ntn_extended_rtt_slots; // SW-MOD_A-50
     // TODO check ra_response window (delayed start)? // last 3 check if needed when we have a delayed start
-    rar_timeout_timer.set(rach_cfg.ra_responseWindow + 3 + 10, [this](uint32_t tid) { timer_expired(tid); });
+    rar_timeout_timer.set(rach_cfg.ra_responseWindow + 3 + 10 + ntn_ra_response_window_timer_increment, [this](uint32_t tid) { timer_expired(tid); }); // SW-MOD_A-50
     rar_timeout_timer.run();
     // Wait for RAR reception
-    ra_window_length = rach_cfg.ra_responseWindow;
-    ra_window_start  = TTI_ADD(tti, 3);
+    ra_window_length = rach_cfg.ra_responseWindow + ntn_ra_response_window_slot_length_increment;
+    ra_window_start  = rar_window_st; // SW-MOD_A-50
     logger.debug("Calculated ra_window_start=%d, ra_window_length=%d", ra_window_start, ra_window_length);
     state = WAITING_FOR_RESPONSE_RECEPTION;
   });

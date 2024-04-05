@@ -24,6 +24,7 @@
 
 #include "srsran/srsran.h"
 #include "srsue/hdr/phy/phy_common.h"
+#include "../../koffset.h"
 
 #define Error(fmt, ...)                                                                                                \
   if (SRSRAN_DEBUG_ENABLED)                                                                                            \
@@ -160,11 +161,13 @@ void phy_common::set_rar_grant(uint8_t             grant_payload[SRSRAN_RAR_GRAN
   dci_ul.format = SRSRAN_DCI_FORMAT_RAR; // Use this format to identify a RAR grant
   dci_ul.rnti   = rnti;
 
+  /* DCD TODO decide what to do for Koffset here - see whether the modification
+     makes sense (i.e., we're in the logical domain of slots) */
   uint32_t msg3_tx_tti;
   if (rar_grant.ul_delay) {
-    msg3_tx_tti = (TTI_TX(rar_grant_tti) + MSG3_DELAY_MS + 1) % 10240;
+    msg3_tx_tti = (TTI_TX(rar_grant_tti) + MSG3_DELAY_MS + NTN_KOFFSET + 1) % 10240;
   } else {
-    msg3_tx_tti = (TTI_TX(rar_grant_tti) + MSG3_DELAY_MS) % 10240;
+    msg3_tx_tti = (TTI_TX(rar_grant_tti) + MSG3_DELAY_MS + NTN_KOFFSET) % 10240;
   }
 
   if (cell.frame_type == SRSRAN_TDD) {
@@ -517,6 +520,7 @@ bool phy_common::get_dl_pending_ack(srsran_ul_sf_cfg_t* sf, uint32_t cc_idx, srs
   } else {
     M = das_table[sf->tdd_config.sf_config][sf->tti % 10].M;
   }
+  /* DCD should be unaffected by Koffset - see Table 10.1-1 ETSI TS 136 213 */
   for (uint32_t i = 0; i < M; i++) {
     uint32_t k =
         (cell.frame_type == SRSRAN_FDD) ? FDD_HARQ_DELAY_UL_MS : das_table[sf->tdd_config.sf_config][sf->tti % 10].K[i];

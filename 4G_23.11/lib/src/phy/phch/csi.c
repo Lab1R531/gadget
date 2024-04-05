@@ -22,11 +22,15 @@
 #include "srsran/phy/utils/bit.h"
 #include "srsran/phy/utils/debug.h"
 #include "srsran/phy/utils/vector.h"
+#include "../../koffset.h"
 #include <math.h>
 
 #define CSI_WIDEBAND_CSI_NOF_BITS 4
 
 #define CSI_DEFAULT_ALPHA 0.5f
+
+/* DCD provisionally store it here */
+uint16_t NTN_KOFFSET = DEFAULT_NTN_KOFFSET;
 
 /// Implements SNRI to CQI conversion
 uint32_t csi_snri_db_to_cqi(srsran_csi_cqi_table_t table, float snri_db)
@@ -37,9 +41,12 @@ uint32_t csi_snri_db_to_cqi(srsran_csi_cqi_table_t table, float snri_db)
 // Implements CSI report triggers
 static bool csi_report_trigger(const srsran_csi_hl_report_cfg_t* cfg, uint32_t slot_idx)
 {
+  uint32_t adjust;
   switch (cfg->type) {
+        /* DCD account for Koffset */
     case SRSRAN_CSI_REPORT_TYPE_PERIODIC:
-      return (slot_idx + cfg->periodic.period - cfg->periodic.offset) % cfg->periodic.period == 0;
+      adjust = cfg->periodic.offset + NTN_KOFFSET;
+      return (slot_idx >= adjust) ? ((slot_idx - adjust) % cfg->periodic.period == 0) : false;
     default:; // Do nothing
   }
   return false;

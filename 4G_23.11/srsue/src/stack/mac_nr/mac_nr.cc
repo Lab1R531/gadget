@@ -278,9 +278,10 @@ void mac_nr::prach_sent(const uint32_t tti,
                         const uint32_t s_id,
                         const uint32_t t_id,
                         const uint32_t f_id,
-                        const uint32_t ul_carrier_id)
+                        const uint32_t ul_carrier_id,
+                        const uint32_t extended_rtt) // SW-MOD_A-50
 {
-  proc_ra.prach_sent(tti, s_id, t_id, f_id, ul_carrier_id);
+  proc_ra.prach_sent(tti, s_id, t_id, f_id, ul_carrier_id, extended_rtt); // SW-MOD_A-50
 }
 
 bool mac_nr::sr_opportunity(uint32_t tti, uint32_t sr_id, bool meas_gap, bool ul_sch_tx)

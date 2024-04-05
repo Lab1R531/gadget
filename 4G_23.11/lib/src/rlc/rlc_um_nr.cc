@@ -23,6 +23,9 @@
 #include "srsran/interfaces/ue_pdcp_interfaces.h"
 #include <sstream>
 
+extern uint32_t ntn_extended_rtt_ms;                    // SW-MOD_A-50
+extern unsigned int ntn_t_reassembly_timer_increment;   // SW-MOD_A-50
+
 #define RX_MOD_NR_BASE(x) (((x)-RX_Next_Highest - UM_Window_Size) % mod)
 
 namespace srsran {
@@ -270,8 +273,8 @@ bool rlc_um_nr::rlc_um_nr_rx::configure(const rlc_config_t& cnfg_, std::string r
   }
 
   // configure timer
-  if (cfg.um_nr.t_reassembly_ms > 0) {
-    reassembly_timer.set(static_cast<uint32_t>(cfg.um_nr.t_reassembly_ms),
+  if (cfg.um_nr.t_reassembly_ms + ntn_t_reassembly_timer_increment + ntn_extended_rtt_ms > 0) {  // SW-MOD_A-50
+    reassembly_timer.set(static_cast<uint32_t>(cfg.um_nr.t_reassembly_ms) + ntn_t_reassembly_timer_increment + ntn_extended_rtt_ms,  // SW-MOD_A-50
                          [this](uint32_t tid) { timer_expired(tid); });
   }
 

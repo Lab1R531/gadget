@@ -22,6 +22,10 @@
 #include "srsran/upper/pdcp_entity_nr.h"
 #include "srsran/common/security.h"
 
+extern uint32_t ntn_extended_rtt_ms;                  // SW-MOD_A-50
+extern unsigned int ntn_t_reordering_timer_increment; // SW-MOD_A-50
+extern unsigned int ntn_discard_timer_increment;      // SW-MOD_A-50
+
 namespace srsran {
 
 pdcp_entity_nr::pdcp_entity_nr(srsue::rlc_interface_pdcp* rlc_,
@@ -62,7 +66,7 @@ bool pdcp_entity_nr::configure(const pdcp_config_t& cnfg_)
   if (cfg.t_reordering != pdcp_t_reordering_t::infinity) {
     reordering_timer = task_sched.get_unique_timer();
     if (static_cast<uint32_t>(cfg.t_reordering) > 0) {
-      reordering_timer.set(static_cast<uint32_t>(cfg.t_reordering), *reordering_fnc);
+            reordering_timer.set(static_cast<uint32_t>(cfg.t_reordering) + ntn_extended_rtt_ms + ntn_t_reordering_timer_increment, *reordering_fnc); // SW-MOD_A-50
     }
   } else if (rlc_mode == rlc_mode_t::UM) {
     logger.warning("%s possible PDCP-NR misconfiguration: using infinite re-ordering timer with RLC UM bearer.",
@@ -129,7 +133,7 @@ void pdcp_entity_nr::write_sdu(unique_byte_buffer_t sdu, int sn)
   if (cfg.discard_timer != pdcp_discard_timer_t::infinity) {
     timer_handler::unique_timer discard_timer = task_sched.get_unique_timer();
     discard_callback            discard_fnc(this, tx_next);
-    discard_timer.set(static_cast<uint32_t>(cfg.discard_timer), discard_fnc);
+    discard_timer.set(static_cast<uint32_t>(cfg.discard_timer) + ntn_extended_rtt_ms + ntn_discard_timer_increment, discard_fnc); // SW-MOD_A-50
     discard_timer.run();
     discard_timers_map.insert(std::make_pair(tx_next, std::move(discard_timer)));
     logger.debug("Discard Timer set for SN %u. Timeout: %ums", tx_next, static_cast<uint32_t>(cfg.discard_timer));

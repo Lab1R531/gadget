@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <string>
 #include <sys/time.h>
+#include "../../koffset.h"
 
 /*******************************************************************************
                               DEFINES
@@ -49,6 +50,7 @@
 #define FDD_HARQ_DELAY_UL_MS 4
 #define MSG3_DELAY_MS 2 // Delay added to FDD_HARQ_DELAY_DL_MS
 
+/* DCD TODO check again uses of TTI_{ADD,TX} for Koffset */
 #define TTI_SUB(a, b) ((((a) + 10240) - (b)) % 10240)
 #define TTI_ADD(a, b) (((a) + (b)) % 10240)
 
@@ -57,7 +59,8 @@
 #define TTI_RX(tti) (TTI_SUB(tti, FDD_HARQ_DELAY_UL_MS))
 #define TTI_RX_ACK(tti) (TTI_ADD(tti, FDD_HARQ_DELAY_UL_MS + FDD_HARQ_DELAY_DL_MS))
 
-#define TTIMOD_SZ 20
+/* DCD expand ring size for Koffset */
+#define TTIMOD_SZ KOFFSET_SZ
 #define TTIMOD(tti) (tti % TTIMOD_SZ)
 
 #define INVALID_TTI 10241

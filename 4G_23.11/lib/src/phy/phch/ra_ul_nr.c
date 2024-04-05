@@ -54,6 +54,7 @@ static const ue_ra_time_resource_t ue_ul_default_A_lut[SRSRAN_MAX_NOF_TIME_RA] =
 
 int srsran_ra_ul_nr_pusch_time_resource_default_A(uint32_t scs_cfg, uint32_t m, srsran_sch_grant_nr_t* grant)
 {
+  /* DCD TS38.214 Table 6.1.2.1.1-4. Definition of value j. */
   uint32_t j[4] = {1, 1, 2, 3};
 
   if (grant == NULL) {
@@ -72,6 +73,8 @@ int srsran_ra_ul_nr_pusch_time_resource_default_A(uint32_t scs_cfg, uint32_t m, 
 
   // Select mapping
   grant->mapping = ue_ul_default_A_lut[m].mapping;
+  /* DCD leaving it unchanged for Koffset as done for 5G gNB - see
+     lib/scheduler/support/pusch/pusch_default_time_allocation.cpp */
   grant->k       = ue_ul_default_A_lut[m].K2 + j[scs_cfg];
   grant->S       = ue_ul_default_A_lut[m].S;
   grant->L       = ue_ul_default_A_lut[m].L;
@@ -193,6 +196,7 @@ int srsran_ra_ul_nr_time(const srsran_sch_hl_cfg_nr_t*    cfg,
       ERROR("Invalid numerology");
       return SRSRAN_ERROR;
     }
+    /* DCD do not account for Koffset here - will do it directly where grant.k is used */
     grant->k += delta[cfg->scs_cfg];
   }
 

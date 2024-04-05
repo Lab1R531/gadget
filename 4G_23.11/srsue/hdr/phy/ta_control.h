@@ -26,6 +26,11 @@
 #include <mutex>
 #include <srsran/phy/common/phy_common.h>
 
+extern unsigned int ntn_n_ta_common;        // SW-MOD_A-30
+extern unsigned int ntn_n_ta_ue_specific;   // SW-MOD_A-30
+extern unsigned int ntn_extended_rtt_ms;    // SW-MOD_A-50
+extern unsigned int ntn_extended_rtt_slots; // SW-MOD_A-50
+
 namespace srsue {
 
 class ta_control
@@ -77,6 +82,22 @@ public:
     // Update base in nta
     next_base_nta = static_cast<uint32_t>(roundf(next_base_sec / SRSRAN_LTE_TS));
 
+    // SW-MOD_A-30
+    if (ntn_n_ta_common || ntn_n_ta_ue_specific || ntn_extended_rtt_slots) {
+      // add n_ta common
+      next_base_nta += ntn_n_ta_common; // SW-MOD_A-30
+
+      // add n_ta_ue_specific
+      next_base_nta += ntn_n_ta_ue_specific; // SW-MOD_A-30
+
+      if (ntn_extended_rtt_slots) // SW-MOD_A-30
+        next_base_nta = ntn_extended_rtt_slots; // SW-MOD_A-30
+
+      next_base_sec = static_cast<float>(next_base_nta) * SRSRAN_LTE_TS;
+
+      printf("TA BASE SET NTA AFTER: %u\n", next_base_nta);
+    }
+
     // Reset speed data
     reset_speed_data();
 
@@ -98,6 +119,24 @@ public:
     // Update base in nta
     next_base_nta = static_cast<uint32_t>(roundf(next_base_sec / SRSRAN_LTE_TS));
 
+    // SW-MOD_A-30
+    if (ntn_n_ta_common || ntn_n_ta_ue_specific || ntn_extended_rtt_slots) {
+      // add n_ta common
+      // TODO: forse qui non dobbiamo (ri)sommarlo?
+      next_base_nta += ntn_n_ta_common; // SW-MOD_A-30
+
+      // add n_ta_ue_specific
+      // TODO: forse qui non dobbiamo (ri)sommarlo?
+      next_base_nta += ntn_n_ta_ue_specific; // SW-MOD_A-30
+
+      if (ntn_extended_rtt_slots) // SW-MOD_A-30
+        next_base_nta = ntn_extended_rtt_slots; // SW-MOD_A-30
+
+      next_base_sec = static_cast<float>(next_base_nta) * SRSRAN_LTE_TS;
+
+      printf("TA BASE SET NTA AFTER: %u\n", next_base_nta);
+    }
+
     logger.info("PHY:   Set TA: ta_delta_usec: %.1f, n_ta: %d, ta_usec: %.1f",
                 ta_delta_sec * 1e6f,
                 next_base_nta,
@@ -110,6 +149,20 @@ public:
 
     // Assuming numerology 0
     next_base_nta = ta_offset / 64;
+
+    // SW-MOD_A-30
+    if (ntn_n_ta_common || ntn_n_ta_ue_specific || ntn_extended_rtt_slots) {
+      // add n_ta common
+      next_base_nta += ntn_n_ta_common; // SW-MOD_A-30
+
+      // add n_ta_ue_specific
+      next_base_nta += ntn_n_ta_ue_specific; // SW-MOD_A-30
+
+      if (ntn_extended_rtt_slots) // SW-MOD_A-30
+        next_base_nta = ntn_extended_rtt_slots; // SW-MOD_A-30
+
+      printf("TA BASE SET NTA AFTER: %u\n", next_base_nta);
+    }
 
     // Update base in seconds
     next_base_sec = static_cast<float>(next_base_nta) * SRSRAN_LTE_TS;
@@ -128,6 +181,12 @@ public:
 
     // Update base nta
     next_base_nta += srsran_N_ta_new_rar(ta_cmd);
+
+    // SW-MOD_A-30
+    if (ntn_extended_rtt_slots) {
+      next_base_nta = ntn_extended_rtt_slots; // SW-MOD_A-30
+      printf("TA BASE SET NTA AFTER: %u\n", next_base_nta);
+    }
 
     // Update base in seconds
     next_base_sec = static_cast<float>(next_base_nta) * SRSRAN_LTE_TS;
@@ -151,6 +210,18 @@ public:
 
     // Update base nta
     next_base_nta = srsran_N_ta_new(next_base_nta, ta_cmd);
+    
+    // SW-MOD_A-30
+    if (ntn_n_ta_common || ntn_n_ta_ue_specific || ntn_extended_rtt_slots) {
+      // add n_ta common
+      next_base_nta += ntn_n_ta_common; // SW-MOD_A-30
+
+      // add n_ta_ue_specific
+      next_base_nta += ntn_n_ta_ue_specific; // SW-MOD_A-30
+
+      if (ntn_extended_rtt_slots) // SW-MOD_A-30
+        next_base_nta = ntn_extended_rtt_slots; // SW-MOD_A-30
+    }
 
     // Update base in seconds
     next_base_sec = static_cast<float>(next_base_nta) * SRSRAN_LTE_TS;
@@ -203,6 +274,22 @@ public:
     // Returns the current base
     return next_base_sec * 1e6f;
   }
+  
+  float get_msec() const                      // SW-MOD_A-30
+  {                                           // SW-MOD_A-30
+    std::lock_guard<std::mutex> lock(mutex);  // SW-MOD_A-30
+                                              // SW-MOD_A-30
+    // Returns the current base               // SW-MOD_A-30
+    return next_base_sec * 1e3f;              // SW-MOD_A-30
+  }                                           // SW-MOD_A-30
+
+  uint32_t get_slots() const                  // SW-MOD_A-30
+  {                                           // SW-MOD_A-30
+    std::lock_guard<std::mutex> lock(mutex);  // SW-MOD_A-30
+                                              // SW-MOD_A-30
+    // Returns the current base               // SW-MOD_A-30
+    return next_base_nta;                     // SW-MOD_A-30
+  }                                           // SW-MOD_A-30
 
   /**
    * Get the current time alignment in kilometers between the eNb and the UE

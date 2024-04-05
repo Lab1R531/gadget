@@ -144,6 +144,7 @@ typedef enum { SRSRAN_SF_NORM = 0, SRSRAN_SF_MBSFN } srsran_sf_t;
 #define SRSRAN_TA_OFFSET (10e-6)
 
 #define SRSRAN_LTE_TS (1.0f / (15000.0f * 2048.0f))
+//#define SRSRAN_LTE_TS (1.0f / (480000.0f * 4096.0f))
 
 #define SRSRAN_SLOT_IDX_CPNORM(symbol_idx, symbol_sz)                                                                  \
   (symbol_idx == 0 ? 0                                                                                                 \

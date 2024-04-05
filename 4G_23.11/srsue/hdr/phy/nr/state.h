@@ -27,6 +27,7 @@
 #include "srsran/common/common.h"
 #include "srsran/interfaces/ue_nr_interfaces.h"
 #include "srsran/srsran.h"
+#include "../../koffset.h"
 #include <array>
 #include <mutex>
 #include <vector>
@@ -124,8 +125,9 @@ public:
       return;
     }
 
+    /* DCD account for Koffset (k2 here) */
     // Calculate Transmit TTI
-    uint32_t tti_tx = TTI_ADD(slot_rx.idx, pusch_cfg.grant.k);
+    uint32_t tti_tx = TTI_ADD(slot_rx.idx, pusch_cfg.grant.k + NTN_KOFFSET);
 
     // Scope mutex to protect read/write the list
     std::lock_guard<std::mutex> lock(pending_ul_grant_mutex);
@@ -194,7 +196,7 @@ public:
     }
 
     // Calculate Receive TTI
-    uint32_t tti_rx = TTI_ADD(slot.idx, pdsch_cfg.grant.k);
+    uint32_t tti_rx = TTI_ADD(slot.idx, pdsch_cfg.grant.k); /* DCD k is k0 here */
 
     // Scope mutex to protect read/write the list
     std::lock_guard<std::mutex> lock(pending_dl_grant_mutex);
@@ -249,8 +251,9 @@ public:
    */
   void set_pending_ack(const uint32_t& tti_rx, const srsran_harq_ack_resource_t& ack_resource, const bool& crc_ok)
   {
+    /* DCD account for Koffset */
     // Calculate Receive TTI
-    uint32_t tti_tx = TTI_ADD(tti_rx, ack_resource.k1);
+    uint32_t tti_tx = TTI_ADD(tti_rx, ack_resource.k1+NTN_KOFFSET);
 
     // Prepare ACK information
     srsran_harq_ack_m_t ack_m = {};

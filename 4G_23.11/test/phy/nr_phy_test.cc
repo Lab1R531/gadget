@@ -36,7 +36,7 @@ static double assert_pusch_bler_max      = 0.000;
 static double assert_pdsch_bler_max      = 0.000;
 static double assert_prach_detection_min = 1.000;
 static double assert_prach_ta_min        = 0.000;
-static double assert_prach_ta_max        = 0.000;
+static double assert_prach_ta_max        = 5000.000; // SW-MOD_A-30
 static double assert_pucch_snr_min       = 0.000;
 
 test_bench::args_t::args_t(int argc, char** argv)
@@ -460,12 +460,12 @@ int main(int argc, char** argv)
                 prach_detection,
                 assert_prach_detection_min);
   srsran_assert(prach_tx_count == 0 or (prach_ta >= assert_prach_ta_min and prach_ta <= assert_prach_ta_max),
-                "PRACH TA average measurement %f is higher than minimum (%d) or above maximum (%f)",
+                                "PRACH TA average measurement %f is higher than minimum (%f) or above maximum (%f)",
                 prach_ta,
                 assert_prach_ta_min,
                 assert_prach_ta_max);
   srsran_assert(metrics.gnb_stack.pucch.count == 0 or (metrics.gnb_stack.pucch.snr_db_min >= assert_pucch_snr_min),
-                "Minimum PUCCH DMRS SNR %f is below the minimum (%d)",
+                "Minimum PUCCH DMRS SNR %f is below the minimum (%f)",
                 metrics.gnb_stack.pucch.snr_db_min,
                 assert_pucch_snr_min);
 
