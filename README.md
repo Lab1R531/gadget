@@ -1,7 +1,9 @@
 # Testbed
 ## Build Preparation
 <details><summary>Ubuntu 22.04</summary>
-```sudo apt-get install cmake make gcc g++ pkg-config libfftw3-dev libmbedtls-dev libsctp-dev libyaml-cpp-dev libgtest-dev```
+```
+sudo apt-get install cmake make gcc g++ pkg-config libfftw3-dev libmbedtls-dev libsctp-dev libyaml-cpp-dev libgtest-dev
+```
 </details>
 
 ## Scenario A (Emulation)
